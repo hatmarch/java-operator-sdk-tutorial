@@ -1,0 +1,29 @@
+{
+	"name": "Developer Demo",
+	"dockerFile": "Dockerfile",
+	"runArgs": [
+		"-v", "${env:HOME}/.kube:/home/jboss/.kube",
+		"-v", "${env:HOME}/.vs-kubernetes:/home/jboss/.vs-kubernetes",
+
+		// use local .oh-my-zsh configuration if it exists (overwriting one in container).
+		// comment the following line out if you want to use local installation on container instead
+		"-v", "${env:HOME}/.oh-my-zsh:/home/jboss/.oh-my-zsh",
+		"-v", "${env:HOME}/.helm:/home/jboss/.helm",
+		"-v", "${env:HOME}/.ssh:/home/jboss/.ssh",
+		// mount the maven cache locally
+		"-v", "${localWorkspaceFolder}/.m2/:/home/jboss/.m2",
+	],
+	"extensions": [
+		"vscjava.vscode-java-pack",
+		"redhat.vscode-xml",
+		"redhat.vscode-quarkus",
+		"ggrebert.quarkus-snippets",
+		"humao.rest-client",
+		"asciidoctor.asciidoctor-vscode"
+	],
+	"settings":{
+		"java.home": "/usr/lib/jvm/java-11-openjdk",
+		"http.proxyStrictSSL": false,
+		"workbench.tips.enabled": false
+	}
+}
