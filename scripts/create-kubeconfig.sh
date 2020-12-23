@@ -1,13 +1,16 @@
 #!/bin/bash
 
+set -euo pipefail
+
 declare MINIKUBE_HOST=192.168.86.87
 # user on the minikube host
 declare USER=mwh
 # private key to be used to authenticate with MINIKUBE_HOST for USER
 declare KEYFILE_PATH=${HOME}/.ssh/fedora
 
-declare REMOTE_KUBECONFIG_PATH="/tmp/kubeconfig"
-declare CERTS_DIR="/tmp/certs"
+# as the remote server, assume we want the kubeconfig at the exported KUBECONFIG location
+declare REMOTE_KUBECONFIG_PATH=${KUBECONFIG}
+declare CERTS_DIR="$DEMO_HOME/$CONFIG_SUBDIR/certs"
 declare MINIKUBE_CTX_NAME="minikube"
 
 if [[ -f $REMOTE_KUBECONFIG_PATH ]]; then
@@ -37,7 +40,7 @@ for HOST_FILE_PATH in ${FILES[@]}; do
     FILE_NAME=$(basename ${HOST_FILE_PATH})
     REMOTE_CERT_FILE_PATH="${CERTS_DIR}/${FILE_NAME}"
     
-    echo "Copying ${FILE} from ${REMOTE_KUBECONFIG_PATH} to ${REMOTE_CERT_FILE_PATH}."
+    echo "Copying ${FILE_NAME} from ${MINIKUBE_HOST}:${HOST_FILE_PATH} to ${REMOTE_CERT_FILE_PATH}."
     scp -i ${KEYFILE_PATH} ${USER}@${MINIKUBE_HOST}:${HOST_FILE_PATH} ${REMOTE_CERT_FILE_PATH}
 done
 
