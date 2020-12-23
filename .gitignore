@@ -24,3 +24,7 @@ hs_err_pid*
 local-config/
 .m2/
 .DS_Store
+
+# other java files
+.project
+.settings
