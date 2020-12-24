@@ -1,5 +1,5 @@
 {
-	"name": "Developer Demo",
+	"name": "Java Operator SDK Tutorial",
 	"dockerFile": "Dockerfile",
 	"runArgs": [
 		"-v", "${env:HOME}/.kube:/home/jboss/.kube",
@@ -24,6 +24,7 @@
 	"settings":{
 		"java.home": "/usr/lib/jvm/java-11-openjdk",
 		"http.proxyStrictSSL": false,
-		"workbench.tips.enabled": false
+		"workbench.tips.enabled": false,
+		"xml.format.enabled": true
 	}
 }
