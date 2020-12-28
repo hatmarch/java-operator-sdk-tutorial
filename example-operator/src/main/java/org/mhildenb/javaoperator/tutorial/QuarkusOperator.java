@@ -19,6 +19,8 @@ public class QuarkusOperator implements QuarkusApplication {
 
   @Inject CustomServiceController controller;
 
+  private boolean _running=false;
+
   public static void main(String... args) {
     Quarkus.run(QuarkusOperator.class, args);
   }
@@ -28,7 +30,13 @@ public class QuarkusOperator implements QuarkusApplication {
     final var config = configuration.getConfigurationFor(controller);
     System.out.println("CR class: " + config.getCustomResourceClass());
     System.out.println("Doneable class = " + config.getDoneableClass());
+    _running=true;
     Quarkus.waitForExit();
+    _running=false;
     return 0;
   }
+
+public boolean isRunning() {
+	return _running;
+}
 }
