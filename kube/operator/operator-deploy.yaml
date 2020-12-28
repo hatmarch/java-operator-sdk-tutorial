@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tutorial-operator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tutorial-operator
+  namespace: tutorial-operator
+spec:
+  selector:
+    matchLabels:
+      app: tutorial-operator
+  replicas: 1 # we always run a single replica of the operator to avoid duplicate handling of events
+  strategy:
+    type: Recreate # during an upgrade the operator will shut down before the new version comes up to prevent two instances running at the same time
+  template:
+    metadata:
+      labels:
+        app: tutorial-operator
+    spec:
+      serviceAccount: tutorial-operator
+      containers:
+      - name: operator
+        image: quay.io/mhildenb/tutorial-operator:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8080
+        #   initialDelaySeconds: 1
+        #   timeoutSeconds: 1
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8080
+        #   initialDelaySeconds: 30
+        #   timeoutSeconds: 1
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tutorial-operator
+  namespace: tutorial-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: operator-admin
+subjects:
+- kind: ServiceAccount
+  name: tutorial-operator
+  namespace: tutorial-operator
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: ""
