@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** A very simple sample controller that creates a service with a label. */
-@Controller(crdName = "customservices.sample.javaoperatorsdk")
+@Controller(crdName = "customservices.sample.javaoperatorsdk",isClusterScoped = true, namespaces = {"ALL_NAMESPACES"})
 public class CustomServiceController implements ResourceController<CustomService> {
 
   private static final Logger log = LoggerFactory.getLogger(CustomServiceController.class);
@@ -41,7 +41,10 @@ public class CustomServiceController implements ResourceController<CustomService
     
     String name = customResource.getMetadata().getName();
     
-    Watch watch = kubernetesClient.services().withName(customResource.getSpec().getName()).watch(new Watcher<Service>() {
+    Watch watch = kubernetesClient.services()
+      .inNamespace(customResource.getMetadata().getNamespace())
+      .withName(customResource.getSpec().getName())
+      .watch(new Watcher<Service>() {
 
       @Override
       public void eventReceived(Action action, Service resource) {
@@ -84,14 +87,15 @@ public class CustomServiceController implements ResourceController<CustomService
 
   @Override
   public DeleteControl deleteResource(CustomService resource, Context<CustomService> context) {
+    // You need to remove the service watcher first otherwise it will reinstate the service as you attempt to delete it
+    removeServiceWatcher(resource);
+
     log.info("Execution deleteResource for: {}", resource.getMetadata().getName());
     kubernetesClient
         .services()
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getSpec().getName())
         .delete();
-
-    removeServiceWatcher(resource);
 
     return DeleteControl.DEFAULT_DELETE;
   }
