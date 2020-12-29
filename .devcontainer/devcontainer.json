@@ -27,6 +27,26 @@
 		"java.home": "/usr/lib/jvm/java-11-openjdk",
 		"http.proxyStrictSSL": false,
 		"workbench.tips.enabled": false,
-		"xml.format.enabled": true
+		"xml.format.enabled": true,
+		// don't pull in the .m2 cache 
+		"files.exclude": {
+			"**/.classpath": true,
+			"**/.project": true,
+			"**/.settings": true,
+			"**/.factorypath": true,
+            "**/.m2": true,
+        },
+		// Don't import the example-operator project
+		// these exclusions don't work entirely as advertised.  
+		// See: https://github.com/redhat-developer/vscode-java/issues/1698
+		"java.import.exclusions": [
+			"**/example-operator",
+			//"example-operator/**",
+			"**/.m2/**",        
+			"**/node_modules/**",
+			"**/.metadata/**",
+			"**/archetype-resources/**",
+			"**/META-INF/maven/**"
+		]
 	}
 }
