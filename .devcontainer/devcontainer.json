@@ -12,6 +12,8 @@
 		"-v", "${env:HOME}/.ssh:/home/jboss/.ssh",
 		// mount the maven cache locally
 		"-v", "${localWorkspaceFolder}/.m2/:/home/jboss/.m2",
+		// override dockerfile DEMO_HOME to whatever folder vscode considers the root folder in the container
+		"-e", "DEMO_HOME=${containerWorkspaceFolder}",
 	],
 	"extensions": [
 		"vscjava.vscode-java-pack",
