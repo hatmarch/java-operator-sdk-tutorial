@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** A very simple sample controller that creates a service with a label. */
-@Controller(crdName = "customservices.sample.javaoperatorsdk",isClusterScoped = true, namespaces = {"ALL_NAMESPACES"})
+@Controller(crdName = "customservices.tutorial.my-first-operator",isClusterScoped = true, namespaces = {"ALL_NAMESPACES"})
 public class CustomServiceController implements ResourceController<CustomService> {
 
   private static final Logger log = LoggerFactory.getLogger(CustomServiceController.class);

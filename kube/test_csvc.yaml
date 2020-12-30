@@ -1,4 +1,4 @@
-apiVersion: "sample.javaoperatorsdk/v1"
+apiVersion: "tutorial.my-first-operator/v1"
 kind: CustomService
 metadata:
   name: custom-service1
