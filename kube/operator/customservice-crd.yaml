@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: customservices.tutorial.my-first-operator
+  name: customservices.tutorial.myfirstoperator
 spec:
-  group: tutorial.my-first-operator
+  group: tutorial.myfirstoperator
   version: v1
   scope: Namespaced
   names:
