@@ -11,15 +11,21 @@ import javax.inject.Inject;
 @QuarkusMain
 public class QuarkusOperator implements QuarkusApplication {
 
-  @Inject KubernetesClient client;
+  @Inject
+  KubernetesClient client;
 
-  @Inject Operator operator;
+  // This class must be injected for the java operator SDK to startup and handle
+  // the registration of customresource controllers
+  @Inject
+  Operator operator;
 
-  @Inject ConfigurationService configuration;
+  @Inject
+  ConfigurationService configuration;
 
-  @Inject CustomServiceController controller;
+  @Inject
+  CustomServiceController controller;
 
-  private boolean _running=false;
+  private boolean _running = false;
 
   public static void main(String... args) {
     Quarkus.run(QuarkusOperator.class, args);
@@ -30,13 +36,13 @@ public class QuarkusOperator implements QuarkusApplication {
     final var config = configuration.getConfigurationFor(controller);
     System.out.println("CR class: " + config.getCustomResourceClass());
     System.out.println("Doneable class = " + config.getDoneableClass());
-    _running=true;
+    _running = true;
     Quarkus.waitForExit();
-    _running=false;
+    _running = false;
     return 0;
   }
 
-public boolean isRunning() {
-	return _running;
-}
+  public boolean isRunning() {
+    return _running;
+  }
 }
