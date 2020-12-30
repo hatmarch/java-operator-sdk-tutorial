@@ -23,7 +23,7 @@
 		"humao.rest-client",
 		"asciidoctor.asciidoctor-vscode"
 	],
-	"postCreateCommand": "rsync -a .devcontainer/workspace-setup/ ${containerWorkspaceFolder}/.vscode/ --ignore-existing",
+	"postStartCommand": "rsync -a .devcontainer/workspace-setup/ ${containerWorkspaceFolder}/.vscode/ --ignore-existing",
 	"settings":{
 		"java.home": "/usr/lib/jvm/java-11-openjdk",
 		"http.proxyStrictSSL": false,
