@@ -1,7 +1,7 @@
 apiVersion: "tutorial.my-first-operator/v1"
 kind: CustomService
 metadata:
-  name: custom-service1
+  name: my-first-custom-service
 spec:
-  name: testservice-hello-world
-  label: testlabel-new
+  name: custom-service-service
+  label: i-did-this
