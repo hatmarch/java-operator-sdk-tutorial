@@ -66,3 +66,9 @@ hs_err_pid*
 # repo specific
 local-config/
 .m2/
+
+# antora related
+node_modules/
+gh-pages/
+.cache/
+publish/
