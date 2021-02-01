@@ -31,13 +31,27 @@ docker build . -t ${IMAGE_TAG}
 
 ==== To Github Pages
 
-[CAUTION]
+[IMPORTANT]
 ====
-This is draft documentation and this process is not yet tested!
+These instruction assume that your repo is setup to serve github pages from the gh-pages branch of your repo
 ====
 
-. Create a special branch called gh-pages for your repo
-. Run the link:scripts/github-pages-publish.sh[github-pages-publish.sh] script
+. Update the link:site.yml[site.yml] file accordingly to represent the documentation you want to publish
+** e.g. set the tag or the branch of this repo where the documentation should be generated from
+** e.g. setup special attributes
+. Run the link:scripts/github-pages-publish.sh[github-pages-publish.sh] script:
++
+----
+$DEMO_HOME/github-pages-publish.sh
+----
++
+. If the publish was successful, you should see in the output:
++
+----
+Site published successfully!
+----
++
+. Within a few minutes, your site should be available at the appropriate github pages address (e.g. link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/[https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/])
 
 == More information 
 

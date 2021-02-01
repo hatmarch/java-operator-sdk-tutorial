@@ -9,6 +9,8 @@ site:
 content:
   sources:
     - url: ./
+      branches: [k8-meetup]
+#      tags: [1.0]
       start_path: documentation
 
 asciidoc:
