@@ -1,0 +1,44 @@
+= Java Operator SDK Tutorial
+
+This repo contains a demo walkthrough and a tutorial for using the link:https://github.com/java-operator-sdk/java-operator-sdk[java-operator-sdk].
+
+== Documentation
+
+The documentation is in `asciidoc` (`.adoc`) format in the `documentation` subdirectory and is laid out in a way that a documentation website can be generated with link:https://docs.antora.org/antora/2.3/[antora] 
+
+=== Generating Documentation Locally
+
+The easiest way to generate the documentation is to run this repo within Visual Studio with Remote Container extensions enabled.  
+
+From within the devcontainer, simply run this command in the root of the repo to generate a live (local) site of the documentation (that will be automatically updated as you change the files):
+
+----
+gulp
+----
+
+=== Deploying the Documentation
+
+For further configuration of the site, edit the link:site.yml[site.yaml] file.
+
+==== In a container
+
+Run the following command from the root of the repo to generate a container image that is capable of serving the documentation for the site.  NOTE: replace `IMAGE_TAG` with an appropriate container name
+
+----
+IMAGE_TAG=quay.io/mhildenb/java-tutorial-docs:1.0
+docker build . -t ${IMAGE_TAG}
+----
+
+==== To Github Pages
+
+[CAUTION]
+====
+This is draft documentation and this process is not yet tested!
+====
+
+. Create a special branch called gh-pages for your repo
+. Run the link:scripts/github-pages-publish.sh[github-pages-publish.sh] script
+
+== More information 
+
+Check the build courseware https://redhat-scholars.github.io/build-course[documentation]  on how folder structure, how to use macros and other gotchas
