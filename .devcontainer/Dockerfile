@@ -3,7 +3,7 @@ FROM quay.io/mhildenb/dev-demo-base:latest
 USER root
 
 # Install necessary tools to run antora
-RUN dnf -y install npm && yum -y update &&  npm i -g @antora/cli@2.3 @antora/site-generator-default@2.3 && npm rm --global npx && npm install --global npx && npm install --global gulp
+RUN dnf -y install npm && npm i -g @antora/cli@2.3 @antora/site-generator-default@2.3 && npm rm --global npx && npm install --global npx && npm install --global gulp
 
 USER jboss
 
