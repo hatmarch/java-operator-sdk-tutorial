@@ -1,18 +1,14 @@
 package org.mhildenb.javaoperator.tutorial;
 
+
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Version;
 
-public class CustomService extends CustomResource {
-
-  private ServiceSpec spec;
-
-  public ServiceSpec getSpec() {
-    return spec;
-  }
-
-  public void setSpec(ServiceSpec spec) {
-    this.spec = spec;
-  }
+@Group("tutorial.myfirstoperator")
+@Version("v1")
+public class CustomService extends CustomResource<ServiceSpec,Void> implements Namespaced {
 
   //Depends only on the name of the customservice
   @Override

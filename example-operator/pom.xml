@@ -4,66 +4,36 @@
   <groupId>org.mhildenb.javaoperator.tutorial</groupId>
   <artifactId>java-op-sdk-tutorial</artifactId>
   <version>1.0.0-SNAPSHOT</version>
+
   <properties>
-    <surefire-plugin.version>2.22.1</surefire-plugin.version>
-    <maven.compiler.target>11</maven.compiler.target>
-    <quarkus.platform.version>1.10.5.Final</quarkus.platform.version>
     <maven.compiler.source>11</maven.compiler.source>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.parameters>true</maven.compiler.parameters>
-    <quarkus-plugin.version>1.10.5.Final</quarkus-plugin.version>
+    <maven.compiler.target>11</maven.compiler.target>
+    <quarkus.version>1.11.0.Final</quarkus.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
-    <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+    <maven.compiler.parameters>true</maven.compiler.parameters>
+    <surefire-plugin.version>2.22.1</surefire-plugin.version>
   </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>${quarkus.platform.group-id}</groupId>
-        <artifactId>${quarkus.platform.artifact-id}</artifactId>
-        <version>${quarkus.platform.version}</version>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-bom</artifactId>
+        <version>${quarkus.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <dependencies>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jsonb</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-rest-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jdbc-mssql</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-jsonb</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-kubernetes-client</artifactId>
-    </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-kubernetes</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-container-image-jib</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-arc</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -82,7 +52,7 @@
     <dependency>
       <groupId>io.javaoperatorsdk</groupId>
       <artifactId>operator-framework-quarkus-extension</artifactId>
-      <version>1.6.1</version>
+      <version>1.7.0</version>
     </dependency>
   </dependencies>
   <build>
@@ -90,7 +60,7 @@
       <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus-plugin.version}</version>
+        <version>${quarkus.version}</version>
         <extensions>true</extensions>
         <executions>
           <execution>
