@@ -42,7 +42,7 @@
 		// these exclusions don't work entirely as advertised.  
 		// See: https://github.com/redhat-developer/vscode-java/issues/1698
 		"java.import.exclusions": [
-			"**/example-operator",
+			//"**/example-operator",
 			//"example-operator/**",
 			"**/.m2/**",        
 			"**/node_modules/**",
