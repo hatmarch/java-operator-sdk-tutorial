@@ -1,0 +1,30 @@
+= Demo Setup
+
+== Connecting to Minikube cluster
+
+If you have made a minikube instance available externally, then you can setup your environment to work with that cluster.  There are some pre-requisites though
+
+. You must have ssh access to the machine running minikube (call it `MINIKUBE_HOST`)
+. The `MINIKUBE_HOST` needs to have `scp` installed
+. You need to have a key pair generated (e.g. from `ssh-keygen`) and have access to both the public and private key
+** Public key path is `PUBLIC_KEY_PATH`
+** Private key path is `PRIVATE_KEY_PATH`
+. You must be able to ssh login as the user who created the minikube cluster on the remote machine (call it `MINIKUBE_USER`)
+
+Once you have satisfied the pre-requisites, here's how you can get access to the cluster
+
+. Copy the public key to the remote machine to allow access using the private key:
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+ssh-copy-id -i pass:[${PUBLIC_KEY_PATH}] pass:[${MINIKUBE_USER}@${MINIKUBE_HOST}]
+----
++
+. Next, run the following command to pull necessary certs and create a suitable kubeconfig
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+pass:[${DEMO_HOME}]/scripts/create-kubeconfig.sh pass:[${MINIKUBE_HOST}] pass:[${PRIVATE_KEY_PATH}] pass:[${MINIKUBE_USER}]
+----

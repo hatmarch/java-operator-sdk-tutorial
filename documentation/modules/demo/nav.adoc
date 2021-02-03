@@ -1,0 +1,2 @@
+* xref:demo:index.adoc[Quarkus Operator Demo]
+include::demo:partial$nav.adoc[]

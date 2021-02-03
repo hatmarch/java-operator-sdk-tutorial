@@ -1,20 +1,19 @@
-= Welcome to Template Tutorial
+= Java and Quarkus Operator Tutorial
 :page-layout: home
 :!sectids:
 
 [.text-center.strong]
-== Publish Services to Kubernetes
+== Java and Quarkus Operator Tutorial
 
-A Kubernetes tutorial to show how you can deploy a Java service to a Kubernetes cluster as it was a child game.
+This guide has two main sections.  A step by step tutorial and a demo walkthrough.
 
 [.tiles.browse]
 == Browse modules
 
 [.tile]
-.xref:01-setup.adoc[Get Started]
+.xref:01-setup.adoc[Tutorial (Placeholder)]
 * xref:01-setup.adoc#minikube[Minikube]
 
 [.tile]
-.xref:02-deploy.adoc[Deploying]
-* xref:02-deploy.adoc#package[Package the Application]
-* xref:02-deploy.adoc#deploy[Deploy the Application]
+.xref:demo:index.adoc[Quarkus Operator Demo]
+include::demo:partial$nav.adoc[]
