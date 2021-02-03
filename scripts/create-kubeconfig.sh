@@ -2,11 +2,13 @@
 
 set -euo pipefail
 
-declare MINIKUBE_HOST=192.168.86.87
-# user on the minikube host
-declare USER=mwh
+declare MINIKUBE_HOST=${1:-192.168.86.48}
+
 # private key to be used to authenticate with MINIKUBE_HOST for USER
-declare KEYFILE_PATH=${HOME}/.ssh/fedora
+declare KEYFILE_PATH=${2:-${HOME}/.ssh/emu-fedora}
+
+# user on the minikube host
+declare USER=${3:-mwh}
 
 # as the remote server, assume we want the kubeconfig at the exported KUBECONFIG location
 declare REMOTE_KUBECONFIG_PATH=${KUBECONFIG}
@@ -47,4 +49,4 @@ done
 
 
 # Reset the server on the config to the current host
-kubectl config set clusters.${MINIKUBE_CTX_NAME}.server "https://${MINIKUBE_HOST}:8443" --kubeconfig=${REMOTE_KUBECONFIG_PATH}
+kubectl config set clusters.${MINIKUBE_CTX_NAME}.server "https://${MINIKUBE_HOST}:8443" --kubeconfig=${REMOTE_KUBECONFIG_PATH}  
