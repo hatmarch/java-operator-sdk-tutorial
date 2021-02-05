@@ -3,6 +3,8 @@ package org.quarkus.operatortutorial.demoapp;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import io.quarkus.arc.log.LoggerName;
@@ -18,8 +20,16 @@ public class Main {
         Quarkus.run(args);
     }
 
-    @LoggerName("demo-log")
+    // FIXME: This gets injected too late?
+    @ConfigProperty(name = "demo-app.logger-name")
+    String loggerName;
+
+    // driven by config property so can't inject
     Logger log;
+
+    public Main() {
+        log = Logger.getLogger(ConfigProvider.getConfig().getValue("demo-app.logger-name", String.class));
+    }
 
     private Thread loggingThread;
 
