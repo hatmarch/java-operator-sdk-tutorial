@@ -5,6 +5,7 @@ import javax.inject.Inject;
 
 import org.jboss.logging.Logger;
 
+import io.quarkus.arc.log.LoggerName;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -17,7 +18,7 @@ public class Main {
         Quarkus.run(args);
     }
 
-    @Inject
+    @LoggerName("demo-log")
     Logger log;
 
     private Thread loggingThread;
