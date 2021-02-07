@@ -1,4 +1,4 @@
-package org.quarkus.operatortutorial.demoapp;
+package org.mhildenb.operatortutorial.demoapp;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;

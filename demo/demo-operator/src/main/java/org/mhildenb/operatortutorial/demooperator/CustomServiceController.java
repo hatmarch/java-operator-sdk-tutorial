@@ -1,4 +1,4 @@
-package org.mhildenb.javaoperator.tutorial;
+package org.mhildenb.operatortutorial.demooperator;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;

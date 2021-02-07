@@ -1,5 +1,4 @@
-package org.mhildenb.javaoperator.tutorial;
-
+package org.mhildenb.operatortutorial.demooperator;
 
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;

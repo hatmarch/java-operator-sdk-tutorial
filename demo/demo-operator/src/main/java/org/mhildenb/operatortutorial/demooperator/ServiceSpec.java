@@ -1,4 +1,4 @@
-package org.mhildenb.javaoperator.tutorial;
+package org.mhildenb.operatortutorial.demooperator;
 
 public class ServiceSpec {
 

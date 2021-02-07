@@ -1,4 +1,4 @@
-package org.quarkus.operatortutorial.demoapp;
+package org.mhildenb.operatortutorial.demoapp;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
