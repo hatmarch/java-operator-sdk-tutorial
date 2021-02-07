@@ -10,5 +10,6 @@
   <modules>
     <module>demo-app</module>
     <module>demo-operator</module>
+    <module>log-module</module>
   </modules>
 </project>
