@@ -37,6 +37,13 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
+      <groupId>org.mhildenb.operatortutorial</groupId>
+      <artifactId>log-module</artifactId>
+      <version>1.0.0</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/../log-module/target/log-module-1.0.0.jar</systemPath>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
     </dependency>
@@ -89,6 +96,11 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
+        <!-- <configuration>
+          <includes>
+            <include>../log-module/target/*.jar</include>
+          </includes>
+        </configuration> -->
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>

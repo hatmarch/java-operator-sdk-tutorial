@@ -1,11 +1,14 @@
 package org.mhildenb.operatortutorial.logmodule;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logmanager.Logger;
+import javax.inject.Singleton;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
+
+@Singleton
 public class LogModule {
 
-    @ConfigProperty(name = "log-module.logger-name")
+    @ConfigProperty(name = "log-module.logger-name", defaultValue = "demo-log")
     String loggerName;
 
     @ConfigProperty(name = "quarkus.log.level")
@@ -16,7 +19,8 @@ public class LogModule {
     }
 
     public Logger getLogger() {
-        //assert loggerName 
+        assert !loggerName.isEmpty() : "loggerName has not been initialized.";
+
         return Logger.getLogger(loggerName);
     }
 }
