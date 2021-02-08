@@ -31,12 +31,68 @@ pass:[${DEMO_HOME}]/scripts/create-kubeconfig.sh pass:[${MINIKUBE_HOST}] pass:[$
 
 == Building and deploying the demoapp
 
-To build a new containerized demo app, run the following command:
+To build a new containerized demo app, follow these steps:
 
+. Rebuild parent project
++
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-cd pass:[${DEMO_HOME}]/demo/demo-app
+mvn package -f pass:[${DEMO_HOME}]/demo
+----
++
+[NOTE]
+====
+You need to build the parent project because the `demo-app` and `demo-operator` rely on a common `log-module` package that is not uploaded to maven.  Thus all three are bundled together so that the parent project can handle the dependencies.  This is why you will see this warning when compiling:
+
+[.console-output]
+[source,bash]
+----
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for org.mhildenb.operatortutorial:demo-app:jar:1.0.0
+[WARNING] 'dependencies.dependency.systemPath' for org.mhildenb.operatortutorial:log-module:jar should not point at files within the project directory, ${project.basedir}/../log-module/target/log-module-1.0.0.jar will be unresolvable by dependent projects @ line 44, column 19
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING]
+----
+====
++
+. This should show all test cases passing and in the output you should see something like this near the end of the output:
++
+[.console-output]
+[source,bash,subs="attributes+,+macros"]
+----
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 6138ms
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] demo 1.0 ........................................... SUCCESS [  0.009 s]
+[INFO] log-module 1.0.0 ................................... SUCCESS [  8.061 s]
+[INFO] demo-app 1.0.0 ..................................... SUCCESS [ 13.832 s]
+[INFO] demo-operator 1.0.0 ................................ SUCCESS [ 10.445 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  34.749 s
+[INFO] Finished at: 2021-02-08T07:46:59Z
+[INFO] ------------------------------------------------------------------------
+----
++
+. Next, specifically build the demo-app for container image:
++
+[IMPORTANT]
+====
+You first must set the following environment variables to log into your chosen image registry (e.g. `quay.io`):
+
+* `USER`
+* `PASSWORD`
+====
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
 mvn -B package -DskipTests \
         -Dquarkus.container-image.build=true \
         -Dquarkus.container-image.push=true \
@@ -45,19 +101,18 @@ mvn -B package -DskipTests \
         -Dquarkus.container-image.name=tutorial-operator-demoapp \
         -Dquarkus.jib.base-jvm-image=fabric8/java-alpine-openjdk11-jre \
         -Dquarkus.container-image.username=pass:[${USER}] -Dquarkus.container-image.password=pass:[${PASSWORD}] \
-        -Dquarkus.container-image.tag=latest
-# Can't use docker container and jib at same time
-#        -Dquarkus.docker.dockerfile-jvm-path=src/main/docker/Dockerfile.jvm
+        -Dquarkus.container-image.tag=latest \
+        -f pass:[${DEMO_HOME}]/demo/demo-app
 ----
-
-To deploy the demo-app, run the following command:
-
++
+. Once the new image is built, you can deploy the `demo-app`, with the following command:
++
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
 kubectl apply -f pass:[${DEMO_HOME}]/kube/demo-app/demo-app-deploy.yaml
 ----
-
++
 [NOTE]
 ====
 This will deploy to the current context namespace.  Use `-n` parameter to deploy to another namespace
