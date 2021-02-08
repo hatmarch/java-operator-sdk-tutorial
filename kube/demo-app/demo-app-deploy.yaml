@@ -20,7 +20,7 @@ spec:
         image: quay.io/mhildenb/tutorial-operator-demoapp:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         # livenessProbe:
         #   httpGet:
         #     path: /health/live
