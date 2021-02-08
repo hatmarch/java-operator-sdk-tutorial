@@ -3,12 +3,10 @@ package org.mhildenb.operatortutorial.demoapp;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import org.mhildenb.operatortutorial.logmodule.LogModule;
 
-import io.quarkus.arc.log.LoggerName;
+
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -21,15 +19,11 @@ public class Main {
         Quarkus.run(args);
     }
 
-    // driven by config property so can't inject
     @Inject 
     LogModule logModule; // = new LogModule();
 
     Logger log;
 
-    public Main() {
-        log = logModule.getLogger();
-    }
 
     private Thread loggingThread;
 
@@ -59,6 +53,7 @@ public class Main {
     }
 
     void onStart(@Observes StartupEvent ev) {
+        log = logModule.getLogger();
         log.info("The application is starting...");
 
         loggingThread = new LoggingThread("Logger");
