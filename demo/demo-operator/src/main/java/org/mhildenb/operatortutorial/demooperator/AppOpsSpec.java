@@ -1,16 +1,20 @@
 package org.mhildenb.operatortutorial.demooperator;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AppOpsSpec {
 
   private String deploymentLabel;
-  private LogSpec logSpec;
+  
+  @JsonProperty("logging")
+  private LogSpec logging;
 
   public LogSpec getLogSpec() {
-    return logSpec;
+    return logging;
   }
 
   public void setLogSpec(LogSpec logSpec) {
-    this.logSpec = logSpec;
+    this.logging = logSpec;
   }
 
   public String getDeploymentLabel() {

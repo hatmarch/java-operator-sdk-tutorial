@@ -10,20 +10,29 @@ spec:
     served: true
     # One and only one version must be marked as the storage version.
     storage: true
-    # Aschema is required
+    # A schema is required
     schema:
       openAPIV3Schema:
         type: object
         properties:
-          deploymentLabel:
-            type: string
-          logging:
+          spec:
             type: object
             properties:
-              logThreshold:
+              deploymentLabel:
                 type: string
-              logFormat:
+              logging:
+                type: object
+                properties:
+                  logThreshold:
+                    type: string
+                  logFormat:
+                    type: string
+          status:
+            type: object
+            properties:
+              message:
                 type: string
+        required: [spec]
   scope: Namespaced
   names:
     plural: appops
