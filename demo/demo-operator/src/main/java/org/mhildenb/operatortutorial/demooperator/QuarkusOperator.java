@@ -23,7 +23,7 @@ public class QuarkusOperator implements QuarkusApplication {
   ConfigurationService configuration;
 
   @Inject
-  CustomServiceController controller;
+  AppOpsController controller;
 
   private boolean _running = false;
 

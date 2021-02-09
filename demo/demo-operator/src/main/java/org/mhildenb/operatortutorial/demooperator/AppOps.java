@@ -5,9 +5,9 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 
-@Group("tutorial.myfirstoperator")
-@Version("v1")
-public class CustomService extends CustomResource<ServiceSpec,Void> implements Namespaced {
+@Group("org.mhildenb.operatortutorial")
+@Version("v1beta1")
+public class AppOps extends CustomResource<AppOpsSpec,Void> implements Namespaced {
 
   //Depends only on the name of the customservice
   @Override
@@ -21,6 +21,6 @@ public class CustomService extends CustomResource<ServiceSpec,Void> implements N
     if (o == null || getClass() != o.getClass()) return false;
 
     // for our purposes, if the customservice shares a name, consider them equal
-    return ( ((CustomService) o).getMetadata().getName().equals(this.getMetadata().getName()) );
+    return ( ((AppOps) o).getMetadata().getName().equals(this.getMetadata().getName()) );
   }
 }
