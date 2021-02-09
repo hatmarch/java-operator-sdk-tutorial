@@ -8,11 +8,13 @@ public class DeploymentEvent extends AbstractEvent {
 
   private final Watcher.Action action;
   private final Deployment deployment;
+  private final AppOps owningResource;
 
   public DeploymentEvent(
-      Watcher.Action action, Deployment resource, DeploymentEventSource deploymentEventSource) {
+      AppOps owningResource, Watcher.Action action, Deployment resource, DeploymentEventSource deploymentEventSource) {
     // TODO: this mapping is really critical and should be made more explicit
-    super(resource.getMetadata().getOwnerReferences().get(0).getUid(), deploymentEventSource);
+    super(owningResource.getMetadata().getUid(), deploymentEventSource);
+    this.owningResource = owningResource;
     this.action = action;
     this.deployment = resource;
   }
@@ -23,6 +25,14 @@ public class DeploymentEvent extends AbstractEvent {
 
   public String resourceUid() {
     return getDeployment().getMetadata().getUid();
+  }
+
+  public AppOps getOwningResource() {
+    return owningResource;
+  }
+
+  public Deployment getDeployment() {
+    return deployment;
   }
 
   @Override
@@ -43,9 +53,5 @@ public class DeploymentEvent extends AbstractEvent {
             && !getDeployment().getMetadata().getDeletionTimestamp().isEmpty())
         + " ]"
         + '}';
-  }
-
-  public Deployment getDeployment() {
-    return deployment;
   }
 }

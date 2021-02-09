@@ -39,6 +39,10 @@ public class AppOpsController implements ResourceController<AppOps> {
   {
     // constructor is too early for the logger to be injected
     log = logModule.getLogger();
+
+    this.deploymentEventSource = DeploymentEventSource.create(kubernetesClient);
+    eventSourceManager.registerEventSource("deployment-event-source", this.deploymentEventSource);
+
   }
 
   @Override
@@ -46,8 +50,8 @@ public class AppOpsController implements ResourceController<AppOps> {
   {
     log.info(String.format("Execution createOrUpdateResource for: %s", resource.getMetadata().getName()));
 
-    // Want to watch any deployments in the AppOps namespace with the proper label
-    deploymentEventSource = DeploymentEventSource.createAndRegisterWatch(kubernetesClient, resource);
+    // register for events for any deployments associated with this AppOps
+    deploymentEventSource.registerWatch(resource);
 
     // Optional<CustomResourceEvent> latestCREvent =
     //     context.getEvents().getLatestOfType(CustomResourceEvent.class);

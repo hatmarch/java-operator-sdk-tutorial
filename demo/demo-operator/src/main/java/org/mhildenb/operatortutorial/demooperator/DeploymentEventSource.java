@@ -3,72 +3,83 @@ package org.mhildenb.operatortutorial.demooperator;
 import static io.javaoperatorsdk.operator.processing.KubernetesResourceUtils.getUID;
 import static io.javaoperatorsdk.operator.processing.KubernetesResourceUtils.getVersion;
 
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.Watcher.Action;
 import io.javaoperatorsdk.operator.processing.event.AbstractEventSource;
+import io.quarkus.runtime.StartupEvent;
 
 import org.jboss.logging.Logger;
 import org.mhildenb.operatortutorial.logmodule.LogModule;
 
-public class DeploymentEventSource extends AbstractEventSource implements Watcher<Deployment> 
+public class DeploymentEventSource extends AbstractEventSource
 {
-  // FIXME: see reference here> https://github.com/java-operator-sdk/samples.git
-  // See here: https://www.vogella.com/tutorials/DependencyInjection/article.html
-  // can't have static methods
-  @Inject
-  private static LogModule logModule;
-
-  private Logger log;
-
-  private final KubernetesClient client;
-
   // Factory 
-  public static DeploymentEventSource createAndRegisterWatch(KubernetesClient client, AppOps resource) {
+  public static DeploymentEventSource create(KubernetesClient client) {
     DeploymentEventSource deploymentEventSource = new DeploymentEventSource(client);
-    deploymentEventSource.registerWatch(resource);
     return deploymentEventSource;
+  }
+  
+  void onStart(@Observes StartupEvent ev) 
+  {
+    // FIXME: See here: https://www.vogella.com/tutorials/DependencyInjection/article.html
+    // can't have static methods
+    log = logModule.getLogger();
   }
 
   private DeploymentEventSource(KubernetesClient client) {
     this.client = client;
-    log = logModule.getLogger();
   }
 
-  private void registerWatch(AppOps resource) {
+  public void registerWatch(AppOps governingResource) {
     client
         .apps()
         .deployments()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withLabel("app", resource.getSpec().getDeploymentLabel())
-        .watch(this);
+        .inNamespace(governingResource.getMetadata().getNamespace())
+        .withLabel("app", governingResource.getSpec().getDeploymentLabel())
+        // use nested watcher to capture the governingResource in the closure
+        .watch(new Watcher<Deployment>() {
+
+          @Override
+          public void eventReceived(Action action, Deployment resource) {
+            doEventReceived(governingResource, action, resource);
+            
+          }
+
+          @Override
+          public void onClose(WatcherException cause) {
+            // TODO Auto-generated method stub
+            doOnClose(cause);
+          }
+
+        });
   }
 
-  @Override
-  public void eventReceived(Action action, Deployment deployment) {
+  private void doEventReceived(AppOps owningResource, Action action, Deployment deployment) {
     log.info(String.format(
-          "Event received for action: %s, Deployment: %s (rr=%i)",
+          "Event received for action: %s, Deployment: %s (rr=%d)",
           action.name(),
           deployment.getMetadata().getName(),
           deployment.getStatus().getReadyReplicas()));
 
     if (action == Action.ERROR) {
       log.warn(String.format(
-            "Skipping {} event for custom resource uid: %s, version: %s",
+            "Skipping %s event for custom resource uid: %s, version: %s",
             action,
             getUID(deployment),
             getVersion(deployment)));
       return;
     }
 
-    eventHandler.handleEvent(new DeploymentEvent(action, deployment, this));
+    eventHandler.handleEvent(new DeploymentEvent(owningResource, action, deployment, this));
   }
 
-  @Override
-  public void onClose(WatcherException e) {
+  private void doOnClose(WatcherException e) {
     if (e == null) {
       return;
     }
@@ -83,4 +94,11 @@ public class DeploymentEventSource extends AbstractEventSource implements Watche
       System.exit(1);
     }
   }
+
+  @Inject
+  private static LogModule logModule;
+
+  private static Logger log;
+
+  private final KubernetesClient client;
 }
