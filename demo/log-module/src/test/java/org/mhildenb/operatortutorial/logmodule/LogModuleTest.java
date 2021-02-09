@@ -8,6 +8,8 @@ import javax.inject.Inject;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
+
 @QuarkusTest
 public class LogModuleTest {
 
@@ -26,4 +28,16 @@ public class LogModuleTest {
             String.format("Unexpected initial log level.  Got %s", logModule.getInitialLogLevel()));
     }
 
+    // This is more of an integration test and should 
+    // only be activated when the host is available
+    //@Test
+    public void testApiCall() {
+        try{
+            logModule.changeLogLevel(new URI("http://localhost:8082"), Logger.Level.FATAL);
+        }
+        catch ( Exception e)
+        {
+            assertTrue( false, String.format("Got error: %s", e.getMessage()) );
+        }
+    }
 }

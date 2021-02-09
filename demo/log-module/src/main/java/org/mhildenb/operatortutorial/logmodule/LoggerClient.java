@@ -12,7 +12,6 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 @RegisterRestClient
 public interface LoggerClient {
 
-    // FIXME: This is probably doomed since the URL can't be dynamic
     @POST
     @Path("/loggers")
     Response updateLogger(LogModel m);
