@@ -1,0 +1,9 @@
+apiVersion: "org.mhildenb.operatortutorial/v1beta1"
+kind: AppOps
+metadata:
+  name: my-bespoke-app
+spec:
+  deploymentLabel: demo-app
+  logging:
+    logThreshold: FATAL
+    logFormat: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] [%F] (%t) %s%e%n"
