@@ -1,22 +1,22 @@
 package org.mhildenb.operatortutorial.demooperator;
 
-import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.Watcher;
 import io.javaoperatorsdk.operator.processing.event.AbstractEvent;
 
-public class DeploymentEvent extends AbstractEvent {
+public class PodEvent extends AbstractEvent {
 
   private final Watcher.Action action;
-  private final Deployment deployment;
+  private final Pod pod;
   private final AppOps owningResource;
 
-  public DeploymentEvent(
-      AppOps owningResource, Watcher.Action action, Deployment resource, DeploymentEventSource deploymentEventSource) {
+  public PodEvent(
+      AppOps owningResource, Watcher.Action action, Pod resource, PodEventSource podEventSource) {
     // TODO: this mapping is really critical and should be made more explicit
-    super(owningResource.getMetadata().getUid(), deploymentEventSource);
+    super(owningResource.getMetadata().getUid(), podEventSource);
     this.owningResource = owningResource;
     this.action = action;
-    this.deployment = resource;
+    this.pod = resource;
   }
 
   public Watcher.Action getAction() {
@@ -24,15 +24,15 @@ public class DeploymentEvent extends AbstractEvent {
   }
 
   public String resourceUid() {
-    return getDeployment().getMetadata().getUid();
+    return getPod().getMetadata().getUid();
   }
 
   public AppOps getOwningResource() {
     return owningResource;
   }
 
-  public Deployment getDeployment() {
-    return deployment;
+  public Pod getPod() {
+    return pod;
   }
 
   @Override
@@ -41,16 +41,16 @@ public class DeploymentEvent extends AbstractEvent {
         + "action="
         + action
         + ", resource=[ name="
-        + getDeployment().getMetadata().getName()
+        + getPod().getMetadata().getName()
         + ", kind="
-        + getDeployment().getKind()
+        + getPod().getKind()
         + ", apiVersion="
-        + getDeployment().getApiVersion()
+        + getPod().getApiVersion()
         + " ,resourceVersion="
-        + getDeployment().getMetadata().getResourceVersion()
+        + getPod().getMetadata().getResourceVersion()
         + ", markedForDeletion: "
-        + (getDeployment().getMetadata().getDeletionTimestamp() != null
-            && !getDeployment().getMetadata().getDeletionTimestamp().isEmpty())
+        + (getPod().getMetadata().getDeletionTimestamp() != null
+            && !getPod().getMetadata().getDeletionTimestamp().isEmpty())
         + " ]"
         + '}';
   }

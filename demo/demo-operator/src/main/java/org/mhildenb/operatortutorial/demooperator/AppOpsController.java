@@ -3,6 +3,7 @@ package org.mhildenb.operatortutorial.demooperator;
 import org.jboss.logging.Logger;
 import org.mhildenb.operatortutorial.logmodule.LogModule;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
@@ -30,7 +31,7 @@ public class AppOpsController implements ResourceController<AppOps> {
 
   private final KubernetesClient kubernetesClient;
 
-  private DeploymentEventSource deploymentEventSource;
+  private PodEventSource podEventSource;
 
   public AppOpsController(KubernetesClient kubernetesClient) {
     this.kubernetesClient = kubernetesClient;
@@ -42,8 +43,8 @@ public class AppOpsController implements ResourceController<AppOps> {
     // constructor is too early for the logger to be injected
     log = logModule.getLogger();
 
-    this.deploymentEventSource = DeploymentEventSource.create(kubernetesClient);
-    eventSourceManager.registerEventSource("deployment-event-source", this.deploymentEventSource);
+    this.podEventSource = PodEventSource.create(kubernetesClient);
+    eventSourceManager.registerEventSource("pod-event-source", this.podEventSource);
 
   }
 
@@ -61,11 +62,11 @@ public class AppOpsController implements ResourceController<AppOps> {
       if (latestAppOpsEvent.get().getAction() == Action.ADDED)
       {
         // register for events for any deployments associated with this AppOps
-        deploymentEventSource.registerWatch(resource);
+        podEventSource.registerWatch(resource);
       }
 
-      // Otherwise if modified, we want to look for all the pods of the resource
-            // FIXME: find relevent pods
+      // FIXME: Check to see if level or threshold has changed since last event and
+      // if so, then get all pods with the label and call per ip
 /*
 List<Pod> pods =
           kubernetesClient
@@ -89,33 +90,41 @@ List<Pod> pods =
             .exec(command);
 */
 
-
-      // FIXME: No update?
+        // FIXME: Update status
     }
 
     // See if there is a deployment event in this batch
-    Optional<DeploymentEvent> latestDeploymentEvent = context.getEvents().getLatestOfType(DeploymentEvent.class);
-    if (latestDeploymentEvent.isPresent()) 
+    Optional<PodEvent> latestPodEvent = context.getEvents().getLatestOfType(PodEvent.class);
+    if (latestPodEvent.isPresent()) 
     {
-      // FIXME: Check to see if all pods are at the proper log level
-      // updatedResource represents the most recent version of the AppOps that registered for these events
-      AppOps updatedResource = updateAppOpsStatus(resource, latestDeploymentEvent.get().getDeployment());
+      Action action = latestPodEvent.get().getAction();
+      if( action == Action.DELETED )
+      {
+        return UpdateControl.noUpdate();
+      }
+
+      Pod pod = latestPodEvent.get().getPod();
+      if (pod.getStatus().getPhase().equals("Running"))
+      {
+        log.info( String.format("Pod is running at ip address %s", pod.getStatus().getPodIP()) );
+
+        // FIXME: Attempt to call the log status on the pod and if different than the last configured format or level, then 
+        // update that pod
+      }
+
+      AppOps updatedResource = updateAppOpsStatus(resource, latestPodEvent.get().getPod());
       
       log.info(String.format(
             "Updating status of AppOps %s in namespace %s to %s",
             resource.getMetadata().getName(),
             resource.getMetadata().getNamespace(), 
             "" ));
-
-
-      // FIXME: Eventually update the status
-      // return UpdateControl.updateStatusSubResource(updatedResource);
     }
 
     return UpdateControl.noUpdate();
   }
 
-  private AppOps updateAppOpsStatus(AppOps resource, Deployment deployment) {
+  private AppOps updateAppOpsStatus(AppOps resource, Pod pod) {
     // FIXME: Update status on resource
     // DeploymentStatus deploymentStatus =
     //     Objects.requireNonNullElse(deployment.getStatus(), new DeploymentStatus());
