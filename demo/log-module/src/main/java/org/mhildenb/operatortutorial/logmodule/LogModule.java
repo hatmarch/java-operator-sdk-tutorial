@@ -61,11 +61,15 @@ public class LogModule {
 
     }
 
-    public String getLogLevel(URI host) throws Exception
+    public Logger.Level getLogLevel(URI host) throws Exception
     {
         // FIXME: Fill in
         // curl -X GET "http://localhost:8080/q/loggers?loggerName=demo-log" -H  "accept: application/json"
+        LoggerClient logClient = RestClientBuilder.newBuilder()
+            .baseUri(host)
+            .build(LoggerClient.class);
+        LoggerClient.LoggerResponse r = logClient.getLogger(loggerName);
 
-        return "FIXME";
+        return r.effectiveLevel;
     }
 }

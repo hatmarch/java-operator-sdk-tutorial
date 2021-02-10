@@ -9,6 +9,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.jboss.logging.Logger;
 
 @Path("/q")
 @Produces("application/json")
@@ -19,7 +20,12 @@ public interface LoggerClient {
     @Path("/loggers")
     Response updateLogger(LogModel m);
 
+    public class LoggerResponse {
+        public Logger.Level effectiveLevel;
+        public String name;
+    }
+
     @GET
     @Path("/loggers")
-    Response getLogger( @QueryParam("loggerName") String loggerName );
+    LoggerResponse getLogger( @QueryParam("loggerName") String loggerName );
 }

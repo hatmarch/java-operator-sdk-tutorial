@@ -2,8 +2,12 @@ package org.mhildenb.operatortutorial.logmodule;
 
 import io.quarkus.test.junit.QuarkusTest;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+
 import javax.inject.Inject;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,6 +19,9 @@ public class LogModuleTest {
 
     @Inject
     LogModule logModule;
+
+    @ConfigProperty(name = "log-module.test.integration-uri", defaultValue = "http://localhost:8084")
+    String integrationHost;
 
     @Test
     public void testInitialLogFormat() {
@@ -30,14 +37,33 @@ public class LogModuleTest {
 
     // This is more of an integration test and should 
     // only be activated when the host is available
-    //@Test
-    public void testApiCall() {
+    @Test
+    @EnabledIfSystemProperty( named = "integrationTest", matches = "true" )
+    @Order(1)
+    public void testChangeLogLevel() {
         try{
-            logModule.changeLogLevel(new URI("http://localhost:8082"), Logger.Level.FATAL);
+            logModule.changeLogLevel(new URI(integrationHost), Logger.Level.FATAL);
         }
         catch ( Exception e)
         {
             assertTrue( false, String.format("Got error: %s", e.getMessage()) );
         }
     }
+
+    @Test
+    @EnabledIfSystemProperty( named = "integrationTest", matches = "true" )
+    @Order(2)
+    public void testGetLogLevel() {
+        try{
+            var logLevel = logModule.getLogLevel(new URI(integrationHost));
+            assertTrue( logLevel == Logger.Level.FATAL, 
+                String.format( "LogLevel did not match.  Expected 'FATAL' but received %s", logLevel ) );
+        }
+        catch ( Exception e)
+        {
+            assertTrue( false, String.format("Got error: %s", e.getMessage()) );
+        }
+    }
+    
+
 }
