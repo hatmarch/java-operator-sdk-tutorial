@@ -12,6 +12,9 @@
 		"-v", "${env:HOME}/.ssh:/home/jboss/.ssh",
 		// mount the maven cache locally
 		"-v", "${env:HOME}/.m2/:/home/jboss/.m2",
+		// mount npm cache locally
+		"-v", "${env:HOME}/.npm:/home/jboss/.npm",
+		
 		// override dockerfile DEMO_HOME to whatever folder vscode considers the root folder in the container
 		"-e", "DEMO_HOME=${containerWorkspaceFolder}",
 	],
