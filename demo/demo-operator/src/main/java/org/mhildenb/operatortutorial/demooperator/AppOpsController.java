@@ -5,12 +5,14 @@ import org.mhildenb.operatortutorial.logmodule.LogModule;
 
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watcher.Action;
 import io.javaoperatorsdk.operator.api.Context;
 import io.javaoperatorsdk.operator.api.Controller;
 import io.javaoperatorsdk.operator.api.DeleteControl;
 import io.javaoperatorsdk.operator.api.ResourceController;
 import io.javaoperatorsdk.operator.api.UpdateControl;
 import io.javaoperatorsdk.operator.processing.event.EventSourceManager;
+import io.javaoperatorsdk.operator.processing.event.internal.CustomResourceEvent;
 
 import java.util.Optional;
 
@@ -45,24 +47,58 @@ public class AppOpsController implements ResourceController<AppOps> {
 
   }
 
+  // This method gets called with the most recent version of the AppOps resource that is responsible directly 
+  // (or indirectly by way of one of its interested) requests
   @Override
   public UpdateControl<AppOps> createOrUpdateResource(AppOps resource, Context<AppOps> context) 
   {
     log.info(String.format("Execution createOrUpdateResource for: %s", resource.getMetadata().getName()));
 
-    // register for events for any deployments associated with this AppOps
-    deploymentEventSource.registerWatch(resource);
+    // Check to see if there is an update in this cycle due to AppOps resource itself
+    Optional<CustomResourceEvent> latestAppOpsEvent = context.getEvents().getLatestOfType(CustomResourceEvent.class);
+    if (latestAppOpsEvent.isPresent())
+    {
+      if (latestAppOpsEvent.get().getAction() == Action.ADDED)
+      {
+        // register for events for any deployments associated with this AppOps
+        deploymentEventSource.registerWatch(resource);
+      }
 
-    // Optional<CustomResourceEvent> latestCREvent =
-    //     context.getEvents().getLatestOfType(CustomResourceEvent.class);
-    // if (latestCREvent.isPresent()) {
-    //   createOrUpdateDeployment(resource);
-    // }
+      // Otherwise if modified, we want to look for all the pods of the resource
+            // FIXME: find relevent pods
+/*
+List<Pod> pods =
+          kubernetesClient
+              .pods()
+              .inNamespace(webapp.getMetadata().getNamespace())
+              .withLabels(deployment.getSpec().getSelector().getMatchLabels())
+              .list()
+              .getItems();
+      for (Pod pod : pods) {
+        log.info(
+            "Executing command {} in Pod {}",
+            String.join(" ", command),
+            pod.getMetadata().getName());
+        kubernetesClient
+            .pods()
+            .inNamespace(deployment.getMetadata().getNamespace())
+            .withName(pod.getMetadata().getName())
+            .inContainer("war-downloader")
+            .writingOutput(new ByteArrayOutputStream())
+            .writingError(new ByteArrayOutputStream())
+            .exec(command);
+*/
 
-    Optional<DeploymentEvent> latestDeploymentEvent =
-        context.getEvents().getLatestOfType(DeploymentEvent.class);
+
+      // FIXME: No update?
+    }
+
+    // See if there is a deployment event in this batch
+    Optional<DeploymentEvent> latestDeploymentEvent = context.getEvents().getLatestOfType(DeploymentEvent.class);
     if (latestDeploymentEvent.isPresent()) 
     {
+      // FIXME: Check to see if all pods are at the proper log level
+      // updatedResource represents the most recent version of the AppOps that registered for these events
       AppOps updatedResource = updateAppOpsStatus(resource, latestDeploymentEvent.get().getDeployment());
       
       log.info(String.format(
@@ -71,7 +107,9 @@ public class AppOpsController implements ResourceController<AppOps> {
             resource.getMetadata().getNamespace(), 
             "" ));
 
-      return UpdateControl.updateStatusSubResource(updatedResource);
+
+      // FIXME: Eventually update the status
+      // return UpdateControl.updateStatusSubResource(updatedResource);
     }
 
     return UpdateControl.noUpdate();
