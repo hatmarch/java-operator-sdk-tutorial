@@ -29,7 +29,7 @@ ssh-copy-id -i pass:[${PUBLIC_KEY_PATH}] pass:[${MINIKUBE_USER}@${MINIKUBE_HOST}
 pass:[${DEMO_HOME}]/scripts/create-kubeconfig.sh pass:[${MINIKUBE_HOST}] pass:[${PRIVATE_KEY_PATH}] pass:[${MINIKUBE_USER}]
 ----
 
-== Building and deploying the demoapp
+== Building 
 
 To build a new containerized demo app, follow these steps:
 
@@ -79,7 +79,10 @@ You need to build the parent project because the `demo-app` and `demo-operator` 
 [INFO] Finished at: 2021-02-08T07:46:59Z
 [INFO] ------------------------------------------------------------------------
 ----
-+
+
+[#deploy]
+== Deploying demo-app
+
 . Next, specifically build the demo-app for container image:
 +
 [IMPORTANT]
@@ -117,3 +120,33 @@ kubectl apply -f pass:[${DEMO_HOME}]/kube/demo-app/demo-app-deploy.yaml
 ====
 This will deploy to the current context namespace.  Use `-n` parameter to deploy to another namespace
 ====
+
+== Running integration tests
+
+=== log-module
+
+The logging module has some tests that exercise the `LoggerClient` (which sets and gets the `Logger.LogLevel` at runtime from the `demo-app`).  To run these tests:
+
+. First, connect to a running demo app.  If using minikube, easiest might be to `port-forward` to <<Deploying demo-app,the app you just deployed>>
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+oc port-forward svc/demo-app 8084:8080
+----
++
+. You can override the host that will be used for the integration test by either changing it (`log-module.test.integration-uri`) in the `application.properties` file or you can set in the environment like this:
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+export log_module_test_integration_uri="http://localhost:8084"
+----
++
+. Finally, build the (`log-module`) project (or parent) with the `integrationTest` system property
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+mvn clean package -DintegrationTest -f $DEMO_HOME/demo/log-module
+----
