@@ -60,4 +60,12 @@ public class LogModule {
         }
 
     }
+
+    public String getLogLevel(URI host) throws Exception
+    {
+        // FIXME: Fill in
+        // curl -X GET "http://localhost:8080/q/loggers?loggerName=demo-log" -H  "accept: application/json"
+
+        return "FIXME";
+    }
 }
