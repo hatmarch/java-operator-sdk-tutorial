@@ -36,7 +36,7 @@ public class LogModuleTest {
     }
 
     // This is more of an integration test and should 
-    // only be activated when the host is available
+    // only be activated when the integrationHost is available
     @Test
     @EnabledIfSystemProperty( named = "integrationTest", matches = "true" )
     @Order(1)
