@@ -24,6 +24,11 @@ public class Main {
 
     Logger log;
 
+    private boolean _running = false;
+    
+    public boolean isRunning() {
+        return _running;
+      }
 
     private Thread loggingThread;
 
@@ -58,6 +63,8 @@ public class Main {
 
         loggingThread = new LoggingThread("Logger");
         loggingThread.start();
+
+        _running = true;
     }
 
 

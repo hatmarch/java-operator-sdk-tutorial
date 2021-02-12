@@ -21,9 +21,15 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
-        # livenessProbe:
-        #   httpGet:
-        #     path: /health/live
-        #     port: 8080
-        #   initialDelaySeconds: 5
-        #   timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 1

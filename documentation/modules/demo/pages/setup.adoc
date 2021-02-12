@@ -113,7 +113,7 @@ mvn -B package -DskipTests \
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-kubectl apply -f pass:[${DEMO_HOME}]/kube/demo-app/demo-app-deploy.yaml
+kubectl apply -f pass:[${DEMO_HOME}]/demo/kube/demo-app/demo-app-deploy.yaml
 ----
 +
 [NOTE]
