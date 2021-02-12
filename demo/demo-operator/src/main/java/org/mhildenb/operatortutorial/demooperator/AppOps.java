@@ -7,7 +7,7 @@ import io.fabric8.kubernetes.model.annotation.Version;
 
 @Group("org.mhildenb.operatortutorial")
 @Version("v1beta1")
-public class AppOps extends CustomResource<AppOpsSpec,Void> implements Namespaced {
+public class AppOps extends CustomResource<AppOpsSpec,AppOpsStatus> implements Namespaced {
 
   //Depends only on the name of the customservice
   @Override

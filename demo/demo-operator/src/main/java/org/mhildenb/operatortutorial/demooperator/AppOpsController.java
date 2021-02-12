@@ -131,23 +131,32 @@ public class AppOpsController implements ResourceController<AppOps> {
     if (newDesiredLogLevel != previousLogLevel) {
       List<Pod> list = kubernetesClient.pods().withLabel("app", deploymentLabel).list().getItems();
 
-      Integer numUpdated = updateLogLevels(list, newDesiredLogLevel);
+      AppOpsStatus status = updateLogLevels(list, newDesiredLogLevel);
+      resource.setStatus(status);
+
+      return UpdateControl.updateStatusSubResource(resource);
+
     }
 
     // FIXME: Update status based on number of pods successfully updated
-    return UpdateControl.updateCustomResource(resource);
+    return UpdateControl.noUpdate();
   }
 
-  private Integer updateLogLevels(List<Pod> list, String newThreshold) {
-    Integer numPodsUpdated = 0;
+  private AppOpsStatus updateLogLevels(List<Pod> list, String newThreshold) {
+    StringBuilder sbMsg = new StringBuilder();
 
     for (Pod pod : list) {
+      sbMsg.append(String.format("Pod: %s> ", pod.getMetadata().getName()));
       if (updateLogLevels(pod, newThreshold)) {
-        numPodsUpdated++;
+        sbMsg.append(String.format("%s%n",newThreshold));
+      }
+      else
+      {
+        sbMsg.append(String.format("updating...%n"));
       }
     }
 
-    return numPodsUpdated;
+    return AppOpsStatus.create(sbMsg.toString());
   }
 
   @ConfigProperty(name="demo-operator.pod-uri-override", defaultValue=" ")
