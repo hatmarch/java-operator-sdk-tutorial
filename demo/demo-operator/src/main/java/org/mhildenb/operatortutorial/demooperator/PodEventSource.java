@@ -4,11 +4,9 @@ import static io.javaoperatorsdk.operator.processing.KubernetesResourceUtils.get
 import static io.javaoperatorsdk.operator.processing.KubernetesResourceUtils.getVersion;
 
 import java.util.HashMap;
-import java.util.Optional;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.validation.constraints.Null;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
