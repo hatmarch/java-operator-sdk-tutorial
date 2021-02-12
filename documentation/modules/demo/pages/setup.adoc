@@ -150,3 +150,53 @@ export log_module_test_integration_uri="http://localhost:8084"
 ----
 mvn clean package -DintegrationTest -f $DEMO_HOME/demo/log-module
 ----
+
+== Exposing Services in Minikube
+
+. Open a new fedora wsl instance
+. run the following:
++
+----
+minikube service --url demo-app -n operator-test
+----
++
+. You should get output like the following:
++
+----
+😿  service operator-test/demo-app has no node port
+🏃  Starting tunnel for service demo-app.
+|---------------|----------|-------------|------------------------|
+|   NAMESPACE   |   NAME   | TARGET PORT |          URL           |
+|---------------|----------|-------------|------------------------|
+| operator-test | demo-app |             | http://127.0.0.1:40289 |
+|---------------|----------|-------------|------------------------|
+http://127.0.0.1:40289
+----
++
+. Open a powershell on the host as Administrator
+. Set the port of the above command a variable `$svcPort`
+. In powershell on the host, run the following command
++
+----
+ netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=8086 connectaddress=127.0.0.1 connectport=$svcPort 
+----
++
+. You can then access the service by calling the window host's IP address at port 8086
+
+== Useful commands
+
+To override the URL that should be used when accessing a pod (useful when running operator locally) set the property `demo-operator.pod-uri-override` in the `application properties` of the `demo-operator`.  Alternatively, set this in the environment before running `mvn:quarkus:dev`
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+DEMO_OPERATOR_POD_URI_OVERRIDE="http://192.168.86.48:8086"
+----
+
+To change the number of replicas to 0
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl patch deploy/demo-app --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 0 }]'
+----
