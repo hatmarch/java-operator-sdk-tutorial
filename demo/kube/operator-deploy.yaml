@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo-operator
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-operator
+  namespace: operator-test
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: operator-admin
+subjects:
+- kind: ServiceAccount
+  name: demo-operator
+  namespace: operator-test
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-operator
+  namespace: operator-test
+spec:
+  selector:
+    matchLabels:
+      app: demo-operator
+  replicas: 1 # we always run a single replica of the operator to avoid duplicate handling of events
+  strategy:
+    type: Recreate # during an upgrade the operator will shut down before the new version comes up to prevent two instances running at the same time
+  template:
+    metadata:
+      labels:
+        app: demo-operator
+    spec:
+      serviceAccount: demo-operator
+      containers:
+      - name: operator
+        image: quay.io/mhildenb/tutorial-operator-demoop:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health/live
+        #     port: 8080
+        #   initialDelaySeconds: 5
+        #   timeoutSeconds: 1

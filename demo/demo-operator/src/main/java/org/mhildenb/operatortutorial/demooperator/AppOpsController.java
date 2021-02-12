@@ -150,8 +150,8 @@ public class AppOpsController implements ResourceController<AppOps> {
   }
 
   URI getPodURI(Pod pod) throws URISyntaxException {
-    //return new URI(String.format("http://%s:8080", pod.getStatus().getPodIP()));
-    return URI.create("http://localhost:8086");
+    return URI.create(String.format("http://%s:8080", pod.getStatus().getPodIP()));
+    // return URI.create("http://localhost:8086");
   }
 
   // returns three if pod was updated successfully
