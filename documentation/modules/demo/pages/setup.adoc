@@ -153,6 +153,46 @@ mvn clean package -DintegrationTest -f $DEMO_HOME/demo/log-module
 
 == Exposing Services in Minikube
 
+=== Fedora
+
+. Expose the deployment as a `NodePort`
++
+----
+kubectl expose deploy/demo-app --type NodePort
+----
++
+. Next create a proxy in minikube
++
+----
+minikube service --url demo-app -n operator-test
+----
++
+. Gather the IP Address and Port and set in variables `TARGET_IP` and `TARGET_PORT` respectively
++
+----
+minikube service list
+----
++
+[.console-output]
+[source,bash,subs="+attributes,+macros"]
+----
+|---------------|------------|--------------|---------------------------|
+|   NAMESPACE   |    NAME    | TARGET PORT  |            URL            |
+|---------------|------------|--------------|---------------------------|
+| default       | kubernetes | No node port |
+| kube-system   | kube-dns   | No node port |
+| operator-test | demo-app   |         #8080#| #http://192.168.49.2:30453# |
+|---------------|------------|--------------|---------------------------|
+----
++
+. Update the iptables with the following:
++
+----
+iptables -t nat -A PREROUTING -p tcp --dport 8008 -j DNAT --to-destination $TARGET_IP:$TARGET_PORT
+----
+
+=== WSL
+
 . Open a new fedora wsl instance
 . run the following:
 +
