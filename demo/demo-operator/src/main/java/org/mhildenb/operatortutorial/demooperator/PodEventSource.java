@@ -96,7 +96,7 @@ public class PodEventSource extends AbstractEventSource
           "Event received for action: %s, pod: %s (status=%s)",
           action.name(),
           pod.getMetadata().getName(),
-          pod.getStatus()));
+          pod.getStatus().getPhase()));
 
     if (action == Action.ERROR) {
       log.warn(String.format(

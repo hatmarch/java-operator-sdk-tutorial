@@ -1,6 +1,7 @@
 package org.mhildenb.operatortutorial.logmodule;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response;
@@ -30,6 +31,15 @@ public class LogModule {
     @ConfigProperty(name = "quarkus.log.console.format")
     String initialLogFormat;
 
+    @ConfigProperty(name = "log-module.connect-timeout", defaultValue = "5")
+    long connectionTimeout;
+
+    private LoggerClient buildLogClient(URI host) {
+		return RestClientBuilder.newBuilder()
+                .baseUri(host)
+                .connectTimeout(connectionTimeout, TimeUnit.SECONDS)
+                .build(LoggerClient.class);
+	}
 
     public Logger.Level getInitialLogLevel() {
         return initialLogLevel;
@@ -50,9 +60,8 @@ public class LogModule {
         m.name = loggerName;
         m.configuredLevel = newLevel.toString();
 
-        LoggerClient logClient = RestClientBuilder.newBuilder()
-            .baseUri(host)
-            .build(LoggerClient.class);
+        var logClient = buildLogClient(host);
+
         Response r = logClient.updateLogger(m);
         if (r.getStatus() < 200 && r.getStatus() >= 300)
         {
@@ -65,9 +74,7 @@ public class LogModule {
     {
         // FIXME: Fill in
         // curl -X GET "http://localhost:8080/q/loggers?loggerName=demo-log" -H  "accept: application/json"
-        LoggerClient logClient = RestClientBuilder.newBuilder()
-            .baseUri(host)
-            .build(LoggerClient.class);
+        LoggerClient logClient = buildLogClient(host);
         LoggerClient.LoggerResponse r = logClient.getLogger(loggerName);
 
         return r.effectiveLevel;
