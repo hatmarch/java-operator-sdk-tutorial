@@ -1,5 +1,6 @@
 package org.mhildenb.operatortutorial.demooperator;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import org.jboss.logging.Logger.Level;
 import org.mhildenb.operatortutorial.logmodule.LogModule;
@@ -149,9 +150,17 @@ public class AppOpsController implements ResourceController<AppOps> {
     return numPodsUpdated;
   }
 
-  URI getPodURI(Pod pod) throws URISyntaxException {
+  @ConfigProperty(name="demo-operator.pod-uri-override", defaultValue=" ")
+  String podUriOverride;
+
+  URI getPodURI(Pod pod) throws URISyntaxException 
+  {
+    if( !podUriOverride.isBlank() )
+    {
+      return URI.create(podUriOverride); 
+    }
+
     return URI.create(String.format("http://%s:8080", pod.getStatus().getPodIP()));
-    // return URI.create("http://localhost:8086");
   }
 
   // returns three if pod was updated successfully
