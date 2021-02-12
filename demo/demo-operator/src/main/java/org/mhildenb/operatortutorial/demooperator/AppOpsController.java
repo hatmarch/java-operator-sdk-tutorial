@@ -1,10 +1,10 @@
 package org.mhildenb.operatortutorial.demooperator;
 
 import org.jboss.logging.Logger;
+import org.jboss.logging.Logger.Level;
 import org.mhildenb.operatortutorial.logmodule.LogModule;
 
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.javaoperatorsdk.operator.api.Context;
@@ -15,8 +15,11 @@ import io.javaoperatorsdk.operator.api.UpdateControl;
 import io.javaoperatorsdk.operator.processing.event.EventSourceManager;
 import io.javaoperatorsdk.operator.processing.event.internal.CustomResourceEvent;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
-
 
 import javax.inject.Inject;
 
@@ -24,7 +27,7 @@ import javax.inject.Inject;
 @Controller
 public class AppOpsController implements ResourceController<AppOps> {
 
-  @Inject 
+  @Inject
   LogModule logModule; // = new LogModule();
 
   Logger log;
@@ -33,13 +36,15 @@ public class AppOpsController implements ResourceController<AppOps> {
 
   private PodEventSource podEventSource;
 
+  // A map of applabel to last log threshold
+  private HashMap<String, String> appLogThresholds = new HashMap<String, String>();
+
   public AppOpsController(KubernetesClient kubernetesClient) {
     this.kubernetesClient = kubernetesClient;
   }
 
   @Override
-  public void init(EventSourceManager eventSourceManager) 
-  {
+  public void init(EventSourceManager eventSourceManager) {
     // constructor is too early for the logger to be injected
     log = logModule.getLogger();
 
@@ -48,87 +53,47 @@ public class AppOpsController implements ResourceController<AppOps> {
 
   }
 
-  // This method gets called with the most recent version of the AppOps resource that is responsible directly 
+  // This method gets called with the most recent version of the AppOps resource
+  // that is responsible directly
   // (or indirectly by way of one of its interested) requests
   @Override
-  public UpdateControl<AppOps> createOrUpdateResource(AppOps resource, Context<AppOps> context) 
-  {
+  public UpdateControl<AppOps> createOrUpdateResource(AppOps resource, Context<AppOps> context) {
     log.info(String.format("Execution createOrUpdateResource for: %s", resource.getMetadata().getName()));
 
-    // Check to see if there is an update in this cycle due to AppOps resource itself
+    // Check to see if there is an update in this cycle due to AppOps resource
+    // itself
     Optional<CustomResourceEvent> latestAppOpsEvent = context.getEvents().getLatestOfType(CustomResourceEvent.class);
-    if (latestAppOpsEvent.isPresent())
-    {
-      if (latestAppOpsEvent.get().getAction() == Action.ADDED)
-      {
-        // register for events for any deployments associated with this AppOps
-        podEventSource.registerWatch(resource);
-      }
-
-      // FIXME: Check to see if level or threshold has changed since last event and
-      // if so, then get all pods with the label and call per ip
-/*
-List<Pod> pods =
-          kubernetesClient
-              .pods()
-              .inNamespace(webapp.getMetadata().getNamespace())
-              .withLabels(deployment.getSpec().getSelector().getMatchLabels())
-              .list()
-              .getItems();
-      for (Pod pod : pods) {
-        log.info(
-            "Executing command {} in Pod {}",
-            String.join(" ", command),
-            pod.getMetadata().getName());
-        kubernetesClient
-            .pods()
-            .inNamespace(deployment.getMetadata().getNamespace())
-            .withName(pod.getMetadata().getName())
-            .inContainer("war-downloader")
-            .writingOutput(new ByteArrayOutputStream())
-            .writingError(new ByteArrayOutputStream())
-            .exec(command);
-*/
-
-        // FIXME: Update status
+    if (latestAppOpsEvent.isPresent()) {
+      // FIXME: Get status back
+      updateAppOps(resource, latestAppOpsEvent.get());
     }
 
-    // See if there is a deployment event in this batch
+    // See if there is a pod event in this batch
     Optional<PodEvent> latestPodEvent = context.getEvents().getLatestOfType(PodEvent.class);
-    if (latestPodEvent.isPresent()) 
-    {
+    if (latestPodEvent.isPresent()) {
       Action action = latestPodEvent.get().getAction();
-      if( action == Action.DELETED )
-      {
-        return UpdateControl.noUpdate();
+      if (action == Action.DELETED) {
+        return UpdateControl.updateCustomResource(resource);
       }
 
       Pod pod = latestPodEvent.get().getPod();
-      if (pod.getStatus().getPhase().equals("Running"))
-      {
-        log.info( String.format("Pod is running at ip address %s", pod.getStatus().getPodIP()) );
-
-        // FIXME: Attempt to call the log status on the pod and if different than the last configured format or level, then 
-        // update that pod
-      }
-
-      AppOps updatedResource = updateAppOpsStatus(resource, latestPodEvent.get().getPod());
-      
-      log.info(String.format(
-            "Updating status of AppOps %s in namespace %s to %s",
-            resource.getMetadata().getName(),
-            resource.getMetadata().getNamespace(), 
-            "" ));
+      updateLogLevels(pod, resource.getSpec().getLogSpec().getLogThreshold());
     }
 
-    return UpdateControl.noUpdate();
+    //AppOps updatedResource = updateAppOpsStatus(resource, latestPodEvent.get().getPod());
+
+    log.info(String.format("Updating status of AppOps %s in namespace %s to %s", resource.getMetadata().getName(),
+        resource.getMetadata().getNamespace(), ""));
+
+    return UpdateControl.updateCustomResource(resource);
   }
 
   private AppOps updateAppOpsStatus(AppOps resource, Pod pod) {
     // FIXME: Update status on resource
     // DeploymentStatus deploymentStatus =
-    //     Objects.requireNonNullElse(deployment.getStatus(), new DeploymentStatus());
-    // int readyReplicas = Objects.requireNonNullElse(deploymentStatus.getReadyReplicas(), 0);
+    // Objects.requireNonNullElse(deployment.getStatus(), new DeploymentStatus());
+    // int readyReplicas =
+    // Objects.requireNonNullElse(deploymentStatus.getReadyReplicas(), 0);
     // TomcatStatus status = new TomcatStatus();
     // status.setReadyReplicas(readyReplicas);
     // tomcat.setStatus(status);
@@ -139,29 +104,79 @@ List<Pod> pods =
   public DeleteControl deleteResource(AppOps resource, Context<AppOps> context) {
     log.info(String.format("Execution deleteResource for: %s", resource.getMetadata().getName()));
 
-    // FIXME: Unregister for watch of the label for resource?
+    // Unregister for watches on pods matching the AppOps resource label
+    podEventSource.unregisterWatch(resource);
 
     return DeleteControl.DEFAULT_DELETE;
   }
 
-  private void updateResource(AppOps resource) {
+  private UpdateControl<AppOps> updateAppOps(AppOps resource, CustomResourceEvent latestAppOpsEvent) {
+    assert (latestAppOpsEvent.getAction() != Action.DELETED);
 
-    // ServicePort servicePort = new ServicePort();
-    // servicePort.setPort(8080);
-    // ServiceSpec serviceSpec = new ServiceSpec();
-    // serviceSpec.setPorts(Collections.singletonList(servicePort));
+    String newDesiredLogLevel = resource.getSpec().getLogSpec().getLogThreshold();
+    String deploymentLabel = resource.getSpec().getDeploymentLabel();
 
-    // kubernetesClient
-    //     .services()
-    //     .inNamespace(resource.getMetadata().getNamespace())
-    //     .createOrReplace(new ServiceBuilder().
-    //       withNewMetadata().
-    //       withName(resource.getSpec().getName()).
-    //       addToLabels("testLabel", resource.getSpec().getLabel()).
-    //       endMetadata().
-    //       withSpec(serviceSpec).
-    //       build()
-    //     );
-  
+    if (latestAppOpsEvent.getAction() == Action.ADDED) {
+      // register for events for any deployments associated with this AppOps
+      podEventSource.registerWatch(resource);
+
+      // record the desired log level
+      appLogThresholds.put(deploymentLabel, newDesiredLogLevel);
+
+      return UpdateControl.updateCustomResource(resource);
+    }
+
+    String previousLogLevel = appLogThresholds.get(deploymentLabel);
+    if (newDesiredLogLevel != previousLogLevel) {
+      List<Pod> list = kubernetesClient.pods().withLabel("app", deploymentLabel).list().getItems();
+
+      Integer numUpdated = updateLogLevels(list, newDesiredLogLevel);
+    }
+
+    // FIXME: Update status based on number of pods successfully updated
+    return UpdateControl.updateCustomResource(resource);
+  }
+
+  private Integer updateLogLevels(List<Pod> list, String newThreshold) {
+    Integer numPodsUpdated = 0;
+
+    for (Pod pod : list) {
+      if (updateLogLevels(pod, newThreshold)) {
+        numPodsUpdated++;
+      }
+    }
+
+    return numPodsUpdated;
+  }
+
+  URI getPodURI(Pod pod) throws URISyntaxException {
+    return new URI(String.format("http://%s:8080", pod.getStatus().getPodIP()));
+  }
+
+  // returns three if pod was updated successfully
+  private Boolean updateLogLevels(Pod pod, String newThreshold) {
+    String podName = pod.getMetadata().getName();
+
+    if (pod.getStatus().getPhase().equals("Running")) {
+      try {
+        URI podUri = getPodURI(pod);
+        Level desiredThreshold = Logger.Level.valueOf(newThreshold);
+
+        if (logModule.getLogLevel(podUri) != desiredThreshold ) {
+          logModule.changeLogLevel(podUri, desiredThreshold );
+
+          log.info(String.format("Updated log level for pod %s", podName));
+        }
+
+        return true;
+      }
+      catch (Exception e) {
+        log.error(String.format("Unable to update pod %s", podName));
+      }
+    }
+
+    log.info( String.format("Skipping pod (%s) not in running state.", podName));
+
+    return false;
   }
 }

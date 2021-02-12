@@ -4,9 +4,11 @@ import static io.javaoperatorsdk.operator.processing.KubernetesResourceUtils.get
 import static io.javaoperatorsdk.operator.processing.KubernetesResourceUtils.getVersion;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.validation.constraints.Null;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -52,7 +54,7 @@ public class PodEventSource extends AbstractEventSource
       return false;
     }
 
-    client
+    var podWatch = client
         .pods()
         .inNamespace(governingResource.getMetadata().getNamespace())
         .withLabel("app", deploymentLabel)
@@ -73,7 +75,20 @@ public class PodEventSource extends AbstractEventSource
 
         });
         
+    podWatches.put(deploymentLabel, podWatch);
+
     return true;
+  }
+
+  public void unregisterWatch(AppOps resource) 
+  {
+    String deploymentLabel = resource.getSpec().getDeploymentLabel();
+    var watch = podWatches.remove(deploymentLabel);
+    if (watch != null)
+    {
+      log.info(String.format("Closing watch for label: %s", deploymentLabel));
+      watch.close();
+    }
   }
 
   private void podEventReceived(AppOps governingResource, Action action, Pod pod) {
