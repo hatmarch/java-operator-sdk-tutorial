@@ -65,40 +65,34 @@ public class AppOpsController implements ResourceController<AppOps> {
     // itself
     Optional<CustomResourceEvent> latestAppOpsEvent = context.getEvents().getLatestOfType(CustomResourceEvent.class);
     if (latestAppOpsEvent.isPresent()) {
-      // FIXME: Get status back
-      updateAppOps(resource, latestAppOpsEvent.get());
+      return updateAppOps(resource, latestAppOpsEvent.get());
     }
 
     // See if there is a pod event in this batch
     Optional<PodEvent> latestPodEvent = context.getEvents().getLatestOfType(PodEvent.class);
-    if (latestPodEvent.isPresent()) {
-      Action action = latestPodEvent.get().getAction();
-      if (action == Action.DELETED) {
-        return UpdateControl.updateCustomResource(resource);
-      }
-
-      Pod pod = latestPodEvent.get().getPod();
-      updateLogLevels(pod, resource.getSpec().getLogSpec().getLogThreshold());
+    if (!latestPodEvent.isPresent()) {
+      return UpdateControl.noUpdate();
     }
 
-    //AppOps updatedResource = updateAppOpsStatus(resource, latestPodEvent.get().getPod());
+
+    Action action = latestPodEvent.get().getAction();
+    if (action == Action.DELETED) {
+      log.info(String.format("Pod %s in namespace %s is deleted", resource.getMetadata().getName(),
+      resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
+
+      // FIXME: Update status
+      return UpdateControl.updateCustomResource(resource);
+    }
+
+    Pod pod = latestPodEvent.get().getPod();
+    AppOpsStatus status = updateLogLevels(pod, resource.getSpec().getLogSpec().getLogThreshold());
+  
+    resource.setStatus(status);
 
     log.info(String.format("Updating status of AppOps %s in namespace %s to %s", resource.getMetadata().getName(),
-        resource.getMetadata().getNamespace(), ""));
+        resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
 
-    return UpdateControl.updateCustomResource(resource);
-  }
-
-  private AppOps updateAppOpsStatus(AppOps resource, Pod pod) {
-    // FIXME: Update status on resource
-    // DeploymentStatus deploymentStatus =
-    // Objects.requireNonNullElse(deployment.getStatus(), new DeploymentStatus());
-    // int readyReplicas =
-    // Objects.requireNonNullElse(deploymentStatus.getReadyReplicas(), 0);
-    // TomcatStatus status = new TomcatStatus();
-    // status.setReadyReplicas(readyReplicas);
-    // tomcat.setStatus(status);
-    return resource;
+    return UpdateControl.updateStatusSubResource(resource);
   }
 
   @Override
@@ -123,8 +117,6 @@ public class AppOpsController implements ResourceController<AppOps> {
 
       // record the desired log level
       appLogThresholds.put(deploymentLabel, newDesiredLogLevel);
-
-      return UpdateControl.updateCustomResource(resource);
     }
 
     String previousLogLevel = appLogThresholds.get(deploymentLabel);
@@ -135,10 +127,9 @@ public class AppOpsController implements ResourceController<AppOps> {
       resource.setStatus(status);
 
       return UpdateControl.updateStatusSubResource(resource);
-
     }
 
-    // FIXME: Update status based on number of pods successfully updated
+    // If we get here then no changes this loop
     return UpdateControl.noUpdate();
   }
 
@@ -146,14 +137,15 @@ public class AppOpsController implements ResourceController<AppOps> {
     StringBuilder sbMsg = new StringBuilder();
 
     for (Pod pod : list) {
-      sbMsg.append(String.format("Pod: %s> ", pod.getMetadata().getName()));
-      if (updateLogLevels(pod, newThreshold)) {
-        sbMsg.append(String.format("%s%n",newThreshold));
-      }
-      else
+      // if we've been through more than once add a newline
+      if( sbMsg.length() > 0)
       {
-        sbMsg.append(String.format("updating...%n"));
+        sbMsg.append("%n");
       }
+
+      // pull out the message for pod and add to the overall message
+      AppOpsStatus status = updateLogLevels(pod, newThreshold);
+      sbMsg.append(status.getMessage());
     }
 
     return AppOpsStatus.create(sbMsg.toString());
@@ -173,8 +165,11 @@ public class AppOpsController implements ResourceController<AppOps> {
   }
 
   // returns three if pod was updated successfully
-  private Boolean updateLogLevels(Pod pod, String newThreshold) {
+  private AppOpsStatus updateLogLevels(Pod pod, String newThreshold) {
+    StringBuilder sbMsg = new StringBuilder();
     String podName = pod.getMetadata().getName();
+
+    sbMsg.append(String.format("Pod: %s> ", pod.getMetadata().getName()));
 
     if (pod.getStatus().getPhase().equals("Running")) {
       try {
@@ -187,15 +182,22 @@ public class AppOpsController implements ResourceController<AppOps> {
           log.info(String.format("Updated log level for pod %s", podName));
         }
 
-        return true;
+        sbMsg.append(String.format("%s",newThreshold));
+        
       }
       catch (Exception e) {
         log.error(String.format("Unable to update pod %s.  Error is: %s", podName, e.toString()));
+
+        sbMsg.append(String.format("ERROR: %s",e.getMessage()));
       }
     }
+    else
+    {
+      log.info( String.format("Skipping pod (%s) not in running state.", podName));
 
-    log.info( String.format("Skipping pod (%s) not in running state.", podName));
+      sbMsg.append(String.format("Not running..."));
+    }
 
-    return false;
+    return AppOpsStatus.create(sbMsg.toString());
   }
 }
