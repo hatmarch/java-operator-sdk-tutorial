@@ -15,6 +15,8 @@ import io.javaoperatorsdk.operator.api.ResourceController;
 import io.javaoperatorsdk.operator.api.UpdateControl;
 import io.javaoperatorsdk.operator.processing.event.EventSourceManager;
 import io.javaoperatorsdk.operator.processing.event.internal.CustomResourceEvent;
+import io.javaoperatorsdk.operator.processing.event.internal.TimerEvent;
+import io.javaoperatorsdk.operator.processing.event.internal.TimerEventSource;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -37,6 +39,8 @@ public class AppOpsController implements ResourceController<AppOps> {
 
   private PodEventSource podEventSource;
 
+  private TimerEventSource timerEventSource;
+
   // A map of applabel to last log threshold
   private HashMap<String, String> appLogThresholds = new HashMap<String, String>();
 
@@ -52,6 +56,8 @@ public class AppOpsController implements ResourceController<AppOps> {
     this.podEventSource = PodEventSource.create(kubernetesClient);
     eventSourceManager.registerEventSource("pod-event-source", this.podEventSource);
 
+    this.timerEventSource = new TimerEventSource();
+    eventSourceManager.registerEventSource("timer-event-source", this.timerEventSource);
   }
 
   // This method gets called with the most recent version of the AppOps resource
@@ -66,6 +72,13 @@ public class AppOpsController implements ResourceController<AppOps> {
     Optional<CustomResourceEvent> latestAppOpsEvent = context.getEvents().getLatestOfType(CustomResourceEvent.class);
     if (latestAppOpsEvent.isPresent()) {
       return updateAppOps(resource, latestAppOpsEvent.get());
+    }
+
+    // See if there is a timer eventin in this batch
+    Optional<TimerEvent> latestTimerEvent = context.getEvents().getLatestOfType(TimerEvent.class);
+    if (latestTimerEvent.isPresent()) {
+      // FIXME: flush all other timer events?
+      updateTimer(resource, latestTimerEvent.get());
     }
 
     // See if there is a pod event in this batch
@@ -95,6 +108,14 @@ public class AppOpsController implements ResourceController<AppOps> {
     return UpdateControl.updateStatusSubResource(resource);
   }
 
+  private UpdateControl<AppOps> updateTimer(AppOps resource, TimerEvent latestTimerEvent) {
+    log.info(String.format("Timer Event for: %s.  Threshold: %d", 
+      resource.getMetadata().getName(), resource.getSpec().getLogSpec().getOutstandingRequestTheshold()));
+
+    // FIXME: check to see if threshold exceeded and if so set log level on CR
+    return UpdateControl.noUpdate();
+  }
+
   @Override
   public DeleteControl deleteResource(AppOps resource, Context<AppOps> context) {
     log.info(String.format("Execution deleteResource for: %s", resource.getMetadata().getName()));
@@ -114,6 +135,9 @@ public class AppOpsController implements ResourceController<AppOps> {
     if (latestAppOpsEvent.getAction() == Action.ADDED) {
       // register for events for any deployments associated with this AppOps
       podEventSource.registerWatch(resource);
+
+      // get a callback every 2 seconds
+      timerEventSource.schedule(resource, 0, 2*1000);
 
       // record the desired log level
       appLogThresholds.put(deploymentLabel, newDesiredLogLevel);
