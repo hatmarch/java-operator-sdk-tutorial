@@ -65,5 +65,19 @@ public class LogModuleTest {
         }
     }
     
-
+    @Test
+    @EnabledIfSystemProperty( named = "integrationTest", matches = "true" )
+    @Order(3)
+    public void testPendingRequests() {
+        try
+        {
+            int requests = logModule.getPendingRequests(URI.create(integrationHost));
+            assertTrue(requests == 0, 
+                String.format("Expected 0 pending requests, got %d", requests));
+        }
+        catch ( Exception e)
+        {
+            assertTrue( false, String.format("Got error: %s", e.getMessage()) );
+        }
+    }
 }

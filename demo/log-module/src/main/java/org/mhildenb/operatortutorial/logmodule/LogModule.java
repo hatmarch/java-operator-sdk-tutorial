@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.jboss.logging.Logger;
+import org.mhildenb.operatortutorial.logmodule.AppClient.Metrics;
 
 import io.quarkus.arc.Unremovable;
 
@@ -34,11 +35,11 @@ public class LogModule {
     @ConfigProperty(name = "log-module.connect-timeout", defaultValue = "5")
     long connectionTimeout;
 
-    private LoggerClient buildLogClient(URI host) {
+    private AppClient buildLogClient(URI host) {
 		return RestClientBuilder.newBuilder()
                 .baseUri(host)
                 .connectTimeout(connectionTimeout, TimeUnit.SECONDS)
-                .build(LoggerClient.class);
+                .build(AppClient.class);
 	}
 
     public Logger.Level getInitialLogLevel() {
@@ -49,6 +50,12 @@ public class LogModule {
         return initialLogFormat;
     }
 
+    public int getPendingRequests( URI host ) throws Exception
+    {
+        var logClient = buildLogClient(host);
+        Metrics m = logClient.getPendingRequests();
+        return m.pendingHellos;
+    }
 
     // give the URI of some host, change the runtime log level of that host to newLevel
     public void changeLogLevel(URI host, Logger.Level newLevel) throws Exception
@@ -74,8 +81,8 @@ public class LogModule {
     {
         // FIXME: Fill in
         // curl -X GET "http://localhost:8080/q/loggers?loggerName=demo-log" -H  "accept: application/json"
-        LoggerClient logClient = buildLogClient(host);
-        LoggerClient.LoggerResponse r = logClient.getLogger(loggerName);
+        AppClient logClient = buildLogClient(host);
+        AppClient.LoggerResponse r = logClient.getLogger(loggerName);
 
         return r.effectiveLevel;
     }
