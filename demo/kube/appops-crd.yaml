@@ -29,6 +29,15 @@ spec:
                     type: string
                   outstandingRequestThreshold:
                     type: integer
+              pods:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    elevatedLogging:
+                      type: boolean
           status:
             type: object
             properties:

@@ -20,6 +20,7 @@ import io.javaoperatorsdk.operator.processing.event.internal.TimerEventSource;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -98,6 +99,7 @@ public class AppOpsController implements ResourceController<AppOps> {
     }
 
     Pod pod = latestPodEvent.get().getPod();
+    FIXME_AddPodToSpec( resource, pod );
     AppOpsStatus status = updateLogLevels(pod, resource.getSpec().getLogSpec().getLogThreshold());
   
     resource.setStatus(status);
@@ -105,12 +107,26 @@ public class AppOpsController implements ResourceController<AppOps> {
     log.info(String.format("Updating status of AppOps %s in namespace %s to %s", resource.getMetadata().getName(),
         resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
 
-    return UpdateControl.updateStatusSubResource(resource);
+    return UpdateControl.updateCustomResourceAndStatus(resource);
+  }
+
+  private void FIXME_AddPodToSpec(AppOps resource, Pod pod) {
+    List<PodLogSpec> podSpecs = resource.getSpec().getPodLogSpecs();
+    if (podSpecs == null)
+    {
+      podSpecs = new ArrayList<PodLogSpec>();
+    }
+
+    PodLogSpec spec = new PodLogSpec();
+    spec.name = pod.getMetadata().getName();
+    spec.elevatedLogging = true;
+    podSpecs.add(spec);
+    resource.getSpec().setPodLogSpecs(podSpecs);
   }
 
   private UpdateControl<AppOps> updateTimer(AppOps resource, TimerEvent latestTimerEvent) {
     log.info(String.format("Timer Event for: %s.  Threshold: %d", 
-      resource.getMetadata().getName(), resource.getSpec().getLogSpec().getOutstandingRequestTheshold()));
+      resource.getMetadata().getName(), resource.getSpec().getLogSpec().getOutstandingRequestThreshold()));
 
     // FIXME: check to see if threshold exceeded and if so set log level on CR
     return UpdateControl.noUpdate();
