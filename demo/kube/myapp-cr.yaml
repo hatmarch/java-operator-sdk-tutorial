@@ -2,6 +2,7 @@ apiVersion: "org.mhildenb.operatortutorial/v1beta2"
 kind: AppOps
 metadata:
   name: my-bespoke-app
+  finalizers: [ "appops.org.mhildenb.operatortutorial/finalizer" ]
 spec:
   deploymentLabel: demo-app
   logging:
