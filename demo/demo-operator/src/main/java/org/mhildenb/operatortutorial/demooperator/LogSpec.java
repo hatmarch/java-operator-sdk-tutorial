@@ -27,7 +27,7 @@ public class LogSpec {
         this.outstandingRequestThreshold = outstandingRequestThreshold;
     }
     
-    public Integer getOutstandingRequestTheshold() {
+    public Integer getOutstandingRequestThreshold() {
         return outstandingRequestThreshold;
     }
 }
