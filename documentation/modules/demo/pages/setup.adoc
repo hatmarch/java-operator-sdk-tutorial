@@ -240,3 +240,11 @@ To change the number of replicas to 0
 ----
 kubectl patch deploy/demo-app --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 0 }]'
 ----
+
+To delete the `appops` custome resouce with the finalizer:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl patch appops/my-bespoke-app --type='json' -p='[{"op": "remove", "path": "/metadata/finalizers" }]'
+----
