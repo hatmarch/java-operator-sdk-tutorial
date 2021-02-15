@@ -1,0 +1,22 @@
+{
+    "deploymentLabel": "demo-app",
+    "logging": {
+      "logThreshold": "FATAL",
+      "outstandingRequestThreshold": 2
+    },
+    "pods": 
+    [
+        {
+            "name": "foo",
+            "elevatedLogging": false
+        },
+        {
+            "name": "bar",
+            "elevatedLogging": false
+        },
+        {
+            "name": "baz",
+            "elevatedLogging": false
+        }
+    ]
+}

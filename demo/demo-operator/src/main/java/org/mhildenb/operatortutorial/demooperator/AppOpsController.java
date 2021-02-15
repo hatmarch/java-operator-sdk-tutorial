@@ -7,6 +7,7 @@ import org.mhildenb.operatortutorial.logmodule.LogModule;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
+
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.javaoperatorsdk.operator.api.Context;
 import io.javaoperatorsdk.operator.api.Controller;
@@ -68,60 +69,119 @@ public class AppOpsController implements ResourceController<AppOps> {
   public UpdateControl<AppOps> createOrUpdateResource(AppOps resource, Context<AppOps> context) {
     log.info(String.format("Execution createOrUpdateResource for: %s", resource.getMetadata().getName()));
 
+    var updateControls = new ArrayList<UpdateControl<AppOps>>();
+
     // Check to see if there is an update in this cycle due to AppOps resource
     // itself
     Optional<CustomResourceEvent> latestAppOpsEvent = context.getEvents().getLatestOfType(CustomResourceEvent.class);
     if (latestAppOpsEvent.isPresent()) {
-      return updateAppOps(resource, latestAppOpsEvent.get());
+      updateControls.add(updateAppOps(resource, latestAppOpsEvent.get()));
     }
 
     // See if there is a timer eventin in this batch
     Optional<TimerEvent> latestTimerEvent = context.getEvents().getLatestOfType(TimerEvent.class);
     if (latestTimerEvent.isPresent()) {
       // FIXME: flush all other timer events?
-      updateTimer(resource, latestTimerEvent.get());
+      updateControls.add(updateTimer(resource, latestTimerEvent.get()));
     }
 
     // See if there is a pod event in this batch
     Optional<PodEvent> latestPodEvent = context.getEvents().getLatestOfType(PodEvent.class);
-    if (!latestPodEvent.isPresent()) {
+    if (latestPodEvent.isPresent()) {
+      updateControls.add(onPodEvent(resource, latestPodEvent.get()));
+    }
+
+    return mergeUpdateControls(updateControls);
+  }
+
+  private UpdateControl<AppOps> mergeUpdateControls(ArrayList<UpdateControl<AppOps>> updates)
+  {
+    if( updates == null )
+    {
       return UpdateControl.noUpdate();
     }
 
+    Boolean updateCR = false;
+    Boolean updateStatus = false;
+    AppOps resource = null;
+    for( UpdateControl<AppOps> update : updates )
+    {
+      updateCR = updateCR || update.isUpdateCustomResource() || update.isUpdateCustomResource();
+      updateStatus = updateStatus || update.isUpdateStatusSubResource() || update.isUpdateCustomResource();
+      resource = (resource == null ) ? update.getCustomResource() : resource;
+    }
 
-    Action action = latestPodEvent.get().getAction();
+    if (resource == null)
+    {
+      return UpdateControl.noUpdate();
+    }
+    else if (updateCR && updateStatus)
+    {
+      return UpdateControl.updateCustomResourceAndStatus(resource);
+    }
+    else if (updateCR)
+    {
+      return UpdateControl.updateCustomResource(resource);
+    }
+
+    return UpdateControl.updateStatusSubResource(resource);
+  }
+
+  private UpdateControl<AppOps> onPodEvent(AppOps resource, PodEvent podEvent) 
+  {
+    Action action = podEvent.getAction();
     if (action == Action.DELETED) {
       log.info(String.format("Pod %s in namespace %s is deleted", resource.getMetadata().getName(),
       resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
 
-      // FIXME: Update status
-      return UpdateControl.updateCustomResource(resource);
+      // FIXME: Remove pod from spec
+      assert( resource.getSpec().getPodLogSpecs() != null );
+      Boolean removed = resource.getSpec().getPodLogSpecs().remove(podEvent.getPod().getMetadata().getName());
+      if (removed) {
+        // FIXME: Update status
+        return UpdateControl.updateCustomResource(resource);
+      }
+      else
+      {
+        UpdateControl.noUpdate();
+      }
+    }
+    else if (action == Action.ADDED)
+    {
+      return addPodToSpec( resource, podEvent.getPod() );
     }
 
-    Pod pod = latestPodEvent.get().getPod();
-    FIXME_AddPodToSpec( resource, pod );
-    AppOpsStatus status = updateLogLevels(pod, resource.getSpec().getLogSpec().getLogThreshold());
-  
-    resource.setStatus(status);
-
-    log.info(String.format("Updating status of AppOps %s in namespace %s to %s", resource.getMetadata().getName(),
-        resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
-
-    return UpdateControl.updateCustomResourceAndStatus(resource);
+    // assume modified event, nothing to do right now
+    return UpdateControl.noUpdate();
   }
 
-  private void FIXME_AddPodToSpec(AppOps resource, Pod pod) {
+  private UpdateControl<AppOps> addPodToSpec(AppOps resource, Pod pod) {
     List<PodLogSpec> podSpecs = resource.getSpec().getPodLogSpecs();
     if (podSpecs == null)
     {
       podSpecs = new ArrayList<PodLogSpec>();
+      resource.getSpec().setPodLogSpecs(podSpecs);
     }
 
     PodLogSpec spec = new PodLogSpec();
-    spec.name = pod.getMetadata().getName();
+    String podName = pod.getMetadata().getName();
+    Optional<PodLogSpec> podLogSpec = resource.getSpec().getPodLogSpec(podName);
+    if( !podLogSpec.isPresent() )
+    {
+      spec = PodLogSpec.createFromName(podName);
+      podSpecs.add(spec);
+    }
+    else
+    {
+      spec = podLogSpec.get();
+    }
+  
+    // FIXME: Look this up
     spec.elevatedLogging = true;
-    podSpecs.add(spec);
-    resource.getSpec().setPodLogSpecs(podSpecs);
+
+    // spec should be added and up to date
+
+    return UpdateControl.updateCustomResource(resource);
   }
 
   private UpdateControl<AppOps> updateTimer(AppOps resource, TimerEvent latestTimerEvent) {
@@ -143,40 +203,56 @@ public class AppOpsController implements ResourceController<AppOps> {
   }
 
   private UpdateControl<AppOps> updateAppOps(AppOps resource, CustomResourceEvent latestAppOpsEvent) {
-    assert (latestAppOpsEvent.getAction() != Action.DELETED);
-
-    String newDesiredLogLevel = resource.getSpec().getLogSpec().getLogThreshold();
-    String deploymentLabel = resource.getSpec().getDeploymentLabel();
-
-    if (latestAppOpsEvent.getAction() == Action.ADDED) {
-      // register for events for any deployments associated with this AppOps
-      podEventSource.registerWatch(resource);
-
-      // get a callback every 2 seconds
-      timerEventSource.schedule(resource, 0, 2*1000);
-
-      // record the desired log level
-      appLogThresholds.put(deploymentLabel, newDesiredLogLevel);
+    switch (latestAppOpsEvent.getAction()) {
+      case ADDED:
+        return onAppOpsAdded(resource, latestAppOpsEvent);
+      case MODIFIED:
+        return onAppOpsModified(resource, latestAppOpsEvent);
+      case DELETED:
+        assert(false); //, "Should not be getting a delete event here");
+        break;
+      default:
+        assert(false); //, String.format("Unknown event type %s", latestAppOpsEvent.getAction()));
+        break;
     }
 
-    String previousLogLevel = appLogThresholds.get(deploymentLabel);
-    if (newDesiredLogLevel != previousLogLevel) {
-      List<Pod> list = kubernetesClient.pods().withLabel("app", deploymentLabel).list().getItems();
+    return UpdateControl.noUpdate();
+  }
 
-      AppOpsStatus status = updateLogLevels(list, newDesiredLogLevel);
-      resource.setStatus(status);
+  private UpdateControl<AppOps> onAppOpsAdded(AppOps resource, CustomResourceEvent latestAppOpsEvent)
+  {
+    // register for events for any deployments associated with this AppOps
+    podEventSource.registerWatch(resource);
 
-      return UpdateControl.updateStatusSubResource(resource);
-    }
+    // get a callback every 2 seconds
+    timerEventSource.schedule(resource, 0, 2*1000);
+
+    // // record the desired log level
+    // appLogThresholds.put(deploymentLabel, newDesiredLogLevel);
 
     // If we get here then no changes this loop
     return UpdateControl.noUpdate();
   }
 
-  private AppOpsStatus updateLogLevels(List<Pod> list, String newThreshold) {
+  private UpdateControl<AppOps> onAppOpsModified(AppOps resource, CustomResourceEvent latestAppOpsEvent) 
+  {
+    // FIXME: Run through pods in the spec and update desired state
+    List<PodLogSpec> podLogSpecs = resource.getSpec().getPodLogSpecs();
+    if (podLogSpecs == null) {
+      return UpdateControl.noUpdate();
+    }
+
+    AppOpsStatus status= updateLogLevels(podLogSpecs, resource.getSpec().getLogSpec().getLogThreshold());
+    resource.setStatus(status);
+
+    return UpdateControl.updateStatusSubResource(resource);
+  }
+
+  private AppOpsStatus updateLogLevels( List<PodLogSpec> podLogSpecs, String strDefaultLogLevel) 
+  {
     StringBuilder sbMsg = new StringBuilder();
 
-    for (Pod pod : list) {
+    for (PodLogSpec podLogSpec : podLogSpecs) {
       // if we've been through more than once add a newline
       if( sbMsg.length() > 0)
       {
@@ -184,8 +260,24 @@ public class AppOpsController implements ResourceController<AppOps> {
       }
 
       // pull out the message for pod and add to the overall message
-      AppOpsStatus status = updateLogLevels(pod, newThreshold);
-      sbMsg.append(status.getMessage());
+      String strNewLevel = strDefaultLogLevel;
+      if (podLogSpec.elevatedLogging)
+      {
+        strNewLevel = Logger.Level.TRACE.toString();
+      }
+
+      var podResource = kubernetesClient.pods().withName(podLogSpec.name);
+      if( podResource.get() != null )
+      {
+        // pull out the message for pod and add to the overall message
+        AppOpsStatus status = updateLogLevels(podResource.get(), strNewLevel );
+        sbMsg.append(status.getMessage());
+      }
+      else
+      {
+        // leave this pod out of our status
+        log.info(String.format("No pod with name %s", podLogSpec.name));
+      }
     }
 
     return AppOpsStatus.create(sbMsg.toString());

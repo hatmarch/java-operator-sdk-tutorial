@@ -248,3 +248,14 @@ To delete the `appops` custome resouce with the finalizer:
 ----
 kubectl patch appops/my-bespoke-app --type='json' -p='[{"op": "remove", "path": "/metadata/finalizers" }]'
 ----
+
+To watch the cr without managed fields:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }]' --dry-run
+
+# watch updates every second with this command
+watch -n 1 -- kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }]' --dry-run
+----
