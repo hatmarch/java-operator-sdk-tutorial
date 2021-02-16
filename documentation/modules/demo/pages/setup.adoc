@@ -121,6 +121,48 @@ kubectl apply -f pass:[${DEMO_HOME}]/demo/kube/demo-app/demo-app-deploy.yaml
 This will deploy to the current context namespace.  Use `-n` parameter to deploy to another namespace
 ====
 
+[#deploy-operator]
+== Deploying Demo Operator
+
+. Next, specifically build the demo-operator for container image:
++
+[IMPORTANT]
+====
+You first must set the following environment variables to log into your chosen image registry (e.g. `quay.io`):
+
+* `USER`
+* `PASSWORD`
+====
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+mvn -B package -DskipTests \
+        -Dquarkus.container-image.build=true \
+        -Dquarkus.container-image.push=true \
+        -Dquarkus.container-image.registry=quay.io \
+        -Dquarkus.container-image.group=mhildenb \
+        -Dquarkus.container-image.name=tutorial-operator-demoop \
+        -Dquarkus.jib.base-jvm-image=fabric8/java-alpine-openjdk11-jre \
+        -Dquarkus.container-image.username=pass:[${USER}] \
+        -Dquarkus.container-image.password=pass:[${PASSWORD}] \
+        -Dquarkus.container-image.tag=latest \
+        -f ${DEMO_HOME}/demo/demo-operator
+----
++
+. Once the new image is built, you can deploy the `demo-operator`, with the following command:
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl apply -f pass:[${DEMO_HOME}]/demo/kube/operator-deploy.yaml
+----
++
+[IMPORTANT]
+====
+This currently MUST deploy to the `operator-test` namespace.  Make sure this namespace is targeted when deploying the operator.
+====
+
 == Running integration tests
 
 === log-module
