@@ -6,6 +6,6 @@ metadata:
 spec:
   deploymentLabel: demo-app
   logging:
-    logThreshold: FATAL
+    defaultLogLevel: FATAL
     outstandingRequestThreshold: 2
     #logFormat: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] [%F] (%t) %s%e%n"

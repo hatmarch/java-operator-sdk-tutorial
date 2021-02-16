@@ -215,7 +215,7 @@ public class AppOpsController implements ResourceController<AppOps> {
       var podLogSpecs = resource.getSpec().getPodLogSpecs();
 
       // This will set the status to pending if there are still pods to be updated
-      AppOpsStatus status= updateLogLevels(podLogSpecs, resource.getSpec().getLogSpec().getLogThreshold());
+      AppOpsStatus status= updateLogLevels(podLogSpecs, resource.getSpec().getLogSpec().getDefaultLogLevel());
       resource.setStatus(status);
     }
 
@@ -301,7 +301,7 @@ public class AppOpsController implements ResourceController<AppOps> {
     var podLogSpecs = resource.getSpec().getPodLogSpecs();
 
     // This will set the status to pending if there are still pods to be updated
-    AppOpsStatus status= updateLogLevels(podLogSpecs, resource.getSpec().getLogSpec().getLogThreshold());
+    AppOpsStatus status= updateLogLevels(podLogSpecs, resource.getSpec().getLogSpec().getDefaultLogLevel());
     resource.setStatus(status);
 
     return UpdateControl.updateCustomResourceAndStatus(resource);

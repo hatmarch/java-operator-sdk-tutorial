@@ -25,7 +25,7 @@ spec:
               logging:
                 type: object
                 properties:
-                  logThreshold:
+                  defaultLogLevel:
                     type: string
                   outstandingRequestThreshold:
                     type: integer
