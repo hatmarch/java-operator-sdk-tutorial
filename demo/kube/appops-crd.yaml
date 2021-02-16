@@ -43,6 +43,8 @@ spec:
             properties:
               message:
                 type: string
+              pending:
+                type: boolean
         required: [spec]
   scope: Namespaced
   names:

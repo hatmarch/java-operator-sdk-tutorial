@@ -10,6 +10,7 @@ public class AppOpsStatus {
     }
 
     private String message;
+    public Boolean pending;
 
     public String getMessage() {
         return message;
