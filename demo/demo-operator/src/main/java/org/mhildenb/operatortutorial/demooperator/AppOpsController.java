@@ -182,10 +182,12 @@ public class AppOpsController implements ResourceController<AppOps> {
       spec = podLogSpec.get();
     }
   
-    // FIXME: Look this up
-    spec.elevatedLogging = true;
+    // Determine whether this pod should have elevated logging
+    // and write it back on the resource
+    evalElevatedLogging(spec, resource, pod);
 
-    // spec should be added and up to date
+    // spec should be added and up to date.
+    // We will act on what we've written on the customresource when we get a callback on its changes
 
     return UpdateControl.updateCustomResource(resource);
   }
@@ -194,8 +196,41 @@ public class AppOpsController implements ResourceController<AppOps> {
     log.info(String.format("Timer Event for: %s.  Threshold: %d", 
       resource.getMetadata().getName(), resource.getSpec().getLogSpec().getOutstandingRequestThreshold()));
 
+    // Look through all pods currently on the resource and update thresholds
+    for( PodLogSpec spec : resource.getSpec().getPodLogSpecs() )
+    {
+      evalElevatedLogging(spec, resource);
+    }
+
     // FIXME: check to see if threshold exceeded and if so set log level on CR
     return UpdateControl.noUpdate();
+  }
+
+  // determines wheter the pod in the spec meets critera for elevated logging and writes this
+  // back on the spec
+  private void evalElevatedLogging(PodLogSpec spec, AppOps resource ) 
+  {
+    var pod = kubernetesClient.pods().withName(spec.name);
+    if( pod.get() != null )
+    {
+      evalElevatedLogging(spec, resource, pod.get());
+    }
+
+    // otherwise, assume default
+  }
+
+  private void evalElevatedLogging(PodLogSpec spec, AppOps resource, Pod pod)
+  {
+    int pendingRequests = 0;
+    try
+    {
+      pendingRequests = logModule.getPendingRequests(getPodURI(pod));
+    }
+    catch( Exception e )
+    {
+      log.info(String.format("Unable to contact pod %s to determine pending requests", pod.getMetadata().getName()));
+    }
+    spec.elevatedLogging = (pendingRequests > resource.getOutstandingRequestThreshold());
   }
 
   @Override
@@ -204,6 +239,9 @@ public class AppOpsController implements ResourceController<AppOps> {
 
     // Unregister for watches on pods matching the AppOps resource label
     podEventSource.unregisterWatch(resource);
+
+    // FIXME: Not sure this is strictly necessary...sdk may clean out this timer on delete
+    timerEventSource.cancelSchedule(resource.getMetadata().getUid());
 
     return DeleteControl.DEFAULT_DELETE;
   }
@@ -263,7 +301,7 @@ public class AppOpsController implements ResourceController<AppOps> {
       // if we've been through more than once add a newline
       if( sbMsg.length() > 0)
       {
-        sbMsg.append("%n");
+        sbMsg.append(String.format("%n"));
       }
 
       // pull out the message for pod and add to the overall message
