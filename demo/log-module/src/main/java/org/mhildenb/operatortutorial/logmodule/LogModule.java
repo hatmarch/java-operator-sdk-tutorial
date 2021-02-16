@@ -54,6 +54,8 @@ public class LogModule {
     {
         var logClient = buildLogClient(host);
         Metrics m = logClient.getPendingRequests();
+        
+        // Just throw an exception if not requests returned
         return m.pendingHellos;
     }
 
