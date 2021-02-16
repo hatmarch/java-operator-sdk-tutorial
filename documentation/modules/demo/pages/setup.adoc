@@ -257,5 +257,5 @@ To watch the cr without managed fields:
 kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }]' --dry-run
 
 # watch updates every second with this command
-watch -n 1 -- kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }]' --dry-run
+watch -d -n 1 -x -- kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }, {"op": "remove", "path": "/metadata/annotations" } ]' --dry-run=client
 ----
