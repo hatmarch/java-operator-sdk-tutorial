@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -93,33 +95,25 @@ public class AppOpsController implements ResourceController<AppOps> {
     return mergeUpdateControls(updateControls);
   }
 
-  private UpdateControl<AppOps> mergeUpdateControls(ArrayList<UpdateControl<AppOps>> updates)
-  {
-    if( updates == null )
-    {
+  private UpdateControl<AppOps> mergeUpdateControls(ArrayList<UpdateControl<AppOps>> updates) {
+    if (updates == null) {
       return UpdateControl.noUpdate();
     }
 
     Boolean updateCR = false;
     Boolean updateStatus = false;
     AppOps resource = null;
-    for( UpdateControl<AppOps> update : updates )
-    {
+    for (UpdateControl<AppOps> update : updates) {
       updateCR = updateCR || update.isUpdateCustomResource() || update.isUpdateCustomResource();
       updateStatus = updateStatus || update.isUpdateStatusSubResource() || update.isUpdateCustomResource();
-      resource = (resource == null ) ? update.getCustomResource() : resource;
+      resource = (resource == null) ? update.getCustomResource() : resource;
     }
 
-    if (resource == null)
-    {
+    if (resource == null) {
       return UpdateControl.noUpdate();
-    }
-    else if (updateCR && updateStatus)
-    {
+    } else if (updateCR && updateStatus) {
       return UpdateControl.updateCustomResourceAndStatus(resource);
-    }
-    else if (updateCR)
-    {
+    } else if (updateCR) {
       return UpdateControl.updateCustomResource(resource);
     }
 
@@ -132,32 +126,28 @@ public class AppOpsController implements ResourceController<AppOps> {
 
     Action action = podEvent.getAction();
     if (action == Action.DELETED) {
-      // FIXME: We can lose pod deleted events if multiple pod delete events come in on the same update frame (or if they just get lost)
-      // Need to do a reconcile
       log.info(String.format("Pod %s in namespace %s is deleted", resource.getMetadata().getName(),
-      resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
+      resource.getMetadata().getNamespace()));
 
       // Remove the pod from the AppOps Spec so we quit trying to update logging
       assert( resource.getSpec().getPodLogSpecs() != null );
       var removedSpec = resource.getSpec().removePodLogSpec(podName);
       if (removedSpec.isPresent()) {
-        log.info(String.format("Removing pod %s from AppOps spec", podName ));
-        
-        // FIXME: Update status?
-
-        return UpdateControl.updateCustomResource(resource);
+        log.info(String.format("Removed pod %s from AppOps spec", podName ));
       }
       else
       {
-        log.info(String.format("Could find removed pod %s in AppOps spec", podName ));
-        
-        UpdateControl.noUpdate();
+        log.trace(String.format("Could find removed pod %s in AppOps spec", podName ));
       }
+
+      // FIXME: We can lose pod deleted events if multiple pod delete events come in
+      // on the same update frame (or if they just get lost)
     }
 
     // NOTE: Since we might miss pod events (multiple events in one frame for a pod) just recreate the 
     // spec for any pods we don't have
-    for( var curPod : kubernetesClient.pods().withLabel("app", resource.getSpec().getDeploymentLabel()).list().getItems() )
+    var podList = kubernetesClient.pods().withLabel("app", resource.getSpec().getDeploymentLabel()).list().getItems();
+    for( var curPod : podList )
     {
       String curPodName = curPod.getMetadata().getName();
       if (!resource.isInPodSpec(curPodName)) 
@@ -167,6 +157,10 @@ public class AppOpsController implements ResourceController<AppOps> {
         addPodToSpec(resource, curPod);
       }
     }
+
+    var names = podList.stream().map( n -> n.getMetadata().getName() ).collect(Collectors.toList());
+    // Make sure the podspecs only match those in the podList (which represents the most current state)
+    resource.reconcilePodLogSpecs(names);
 
     // try to get a chance registered on the AppOps resource
     return UpdateControl.updateCustomResource(resource);

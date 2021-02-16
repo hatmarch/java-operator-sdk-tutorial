@@ -1,8 +1,11 @@
 package org.mhildenb.operatortutorial.demooperator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.dsl.GetListFromLoadable;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 
@@ -23,6 +26,27 @@ public class AppOps extends CustomResource<AppOpsSpec,AppOpsStatus> implements N
 
     // for our purposes, if the customservice shares a name, consider them equal
     return ( ((AppOps) o).getMetadata().getName().equals(this.getMetadata().getName()) );
+  }
+
+  public void reconcilePodLogSpecs(List<String> podNames )
+  {
+    var spec = getSpec();
+    if( spec == null )
+    {
+      spec = new AppOpsSpec();
+      setSpec(spec);
+    }
+
+    var currentPodSpecs = spec.getPodLogSpecs();
+    if( currentPodSpecs == null )
+    {
+      currentPodSpecs = new ArrayList<PodLogSpec>();
+    }
+    // Finally, run through all the podspecs collecting only those that appear in the (current) pod list
+    // (This is because we cannot rely on delete events)
+    var filteredList = currentPodSpecs.stream().filter( (n) -> podNames.contains(n.name) ).collect(Collectors.toList());
+
+    spec.setPodLogSpecs(filteredList);
   }
 
   // Convenience function to get outstanding request threshold

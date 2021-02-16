@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -95,5 +97,26 @@ public class JsonTests {
             assertTrue(s.name.equals(names[count]), "Order or resulting list appears wrong"); 
             count++; 
         }
+    }
+
+    @Test
+    public void shouldReconcileBarAway() {
+
+        assertTrue( myAppOps != null, "No AppOpsSpec resource");
+        
+        var appOps = new AppOps();
+        appOps.setSpec(myAppOps);
+
+        String[] names = {"baz", "foo"};
+        appOps.reconcilePodLogSpecs(Arrays.asList(names));
+
+        String [] orderedNames = { "foo", "baz" };
+        int count = 0;
+        for( PodLogSpec s : myAppOps.getPodLogSpecs() )
+        {
+            assertTrue(s.name.equals(orderedNames[count]), "Order or resulting list appears wrong"); 
+            count++; 
+        }
+
     }
 }
