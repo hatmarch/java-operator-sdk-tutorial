@@ -42,4 +42,20 @@ public class AppOps extends CustomResource<AppOpsSpec,AppOpsStatus> implements N
 
     return logs.getOutstandingRequestThreshold();
   }
+
+  public boolean isInPodSpec(String podName) 
+  {
+    var spec = getSpec();
+    if( spec == null )
+    {
+      return false;
+    }
+
+    if( spec.getPodLogSpec(podName).isPresent() )
+    {
+      return true;
+    }
+
+    return false;
+  }
 }

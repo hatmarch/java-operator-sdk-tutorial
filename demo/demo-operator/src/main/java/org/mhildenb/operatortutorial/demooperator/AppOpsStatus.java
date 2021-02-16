@@ -6,6 +6,7 @@ public class AppOpsStatus {
     {
         AppOpsStatus status = new AppOpsStatus();
         status.message = message;
+        status.pending = false;
         return status;
     }
 

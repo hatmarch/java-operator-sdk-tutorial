@@ -81,7 +81,6 @@ public class AppOpsController implements ResourceController<AppOps> {
     // See if there is a timer eventin in this batch
     Optional<TimerEvent> latestTimerEvent = context.getEvents().getLatestOfType(TimerEvent.class);
     if (latestTimerEvent.isPresent()) {
-      // FIXME: flush all other timer events?
       updateControls.add(updateTimer(resource, latestTimerEvent.get()));
     }
 
@@ -129,14 +128,17 @@ public class AppOpsController implements ResourceController<AppOps> {
 
   private UpdateControl<AppOps> onPodEvent(AppOps resource, PodEvent podEvent) 
   {
+    String podName = podEvent.getPod().getMetadata().getName();
+
     Action action = podEvent.getAction();
     if (action == Action.DELETED) {
+      // FIXME: We can lose pod deleted events if multiple pod delete events come in on the same update frame (or if they just get lost)
+      // Need to do a reconcile
       log.info(String.format("Pod %s in namespace %s is deleted", resource.getMetadata().getName(),
       resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
 
       // Remove the pod from the AppOps Spec so we quit trying to update logging
       assert( resource.getSpec().getPodLogSpecs() != null );
-      String podName = podEvent.getPod().getMetadata().getName();
       var removedSpec = resource.getSpec().removePodLogSpec(podName);
       if (removedSpec.isPresent()) {
         log.info(String.format("Removing pod %s from AppOps spec", podName ));
@@ -152,13 +154,22 @@ public class AppOpsController implements ResourceController<AppOps> {
         UpdateControl.noUpdate();
       }
     }
-    else if (action == Action.ADDED)
+
+    // NOTE: Since we might miss pod events (multiple events in one frame for a pod) just recreate the 
+    // spec for any pods we don't have
+    for( var curPod : kubernetesClient.pods().withLabel("app", resource.getSpec().getDeploymentLabel()).list().getItems() )
     {
-      return addPodToSpec( resource, podEvent.getPod() );
+      String curPodName = curPod.getMetadata().getName();
+      if (!resource.isInPodSpec(curPodName)) 
+      {
+        log.info(String.format("Found a pod (%s) that was previously not in CR list", curPodName));
+
+        addPodToSpec(resource, curPod);
+      }
     }
 
-    // assume modified event, nothing to do right now
-    return UpdateControl.noUpdate();
+    // try to get a chance registered on the AppOps resource
+    return UpdateControl.updateCustomResource(resource);
   }
 
   private UpdateControl<AppOps> addPodToSpec(AppOps resource, Pod pod) {
@@ -193,7 +204,7 @@ public class AppOpsController implements ResourceController<AppOps> {
   }
 
   private UpdateControl<AppOps> updateTimer(AppOps resource, TimerEvent latestTimerEvent) {
-    log.info(String.format("Timer Event for: %s.  Threshold: %d", 
+    log.trace(String.format("Timer Event for: %s.  Threshold: %d", 
       resource.getMetadata().getName(), resource.getSpec().getLogSpec().getOutstandingRequestThreshold()));
 
     // Look through all pods currently on the resource and update thresholds
@@ -202,8 +213,19 @@ public class AppOpsController implements ResourceController<AppOps> {
       evalElevatedLogging(spec, resource);
     }
 
-    // FIXME: check to see if threshold exceeded and if so set log level on CR
-    return UpdateControl.noUpdate();
+    // if there are updates still pending, then attempt to update log levels now
+    if( resource.getStatus().pending)
+    {
+      log.info("Found pending status in timer event");
+
+      var podLogSpecs = resource.getSpec().getPodLogSpecs();
+
+      // This will set the status to pending if there are still pods to be updated
+      AppOpsStatus status= updateLogLevels(podLogSpecs, resource.getSpec().getLogSpec().getLogThreshold());
+      resource.setStatus(status);
+    }
+
+    return UpdateControl.updateCustomResourceAndStatus(resource);
   }
 
   // determines wheter the pod in the spec meets critera for elevated logging and writes this
@@ -272,32 +294,34 @@ public class AppOpsController implements ResourceController<AppOps> {
     // get a callback every 2 seconds
     timerEventSource.schedule(resource, 0, 2*1000);
 
-    // // record the desired log level
-    // appLogThresholds.put(deploymentLabel, newDesiredLogLevel);
+    // reset pod list and status
+    resource.getSpec().setPodLogSpecs(new ArrayList<PodLogSpec>());
+    resource.setStatus(AppOpsStatus.create("Initalized"));
 
     // If we get here then no changes this loop
-    return UpdateControl.noUpdate();
+    return UpdateControl.updateCustomResourceAndStatus(resource);
   }
 
   private UpdateControl<AppOps> onAppOpsModified(AppOps resource, CustomResourceEvent latestAppOpsEvent) 
   {
-    // FIXME: Run through pods in the spec and update desired state
-    List<PodLogSpec> podLogSpecs = resource.getSpec().getPodLogSpecs();
-    if (podLogSpecs == null) {
-      return UpdateControl.noUpdate();
-    }
+    var podLogSpecs = resource.getSpec().getPodLogSpecs();
 
+    // This will set the status to pending if there are still pods to be updated
     AppOpsStatus status= updateLogLevels(podLogSpecs, resource.getSpec().getLogSpec().getLogThreshold());
     resource.setStatus(status);
 
-    return UpdateControl.updateStatusSubResource(resource);
+    return UpdateControl.updateCustomResourceAndStatus(resource);
   }
 
   private AppOpsStatus updateLogLevels( List<PodLogSpec> podLogSpecs, String strDefaultLogLevel) 
   {
     StringBuilder sbMsg = new StringBuilder();
+    AppOpsStatus status = AppOpsStatus.create("");
+    status.pending = true;
 
+    Boolean anyPending = false;
     for (PodLogSpec podLogSpec : podLogSpecs) {
+
       // if we've been through more than once add a newline
       if( sbMsg.length() > 0)
       {
@@ -315,8 +339,9 @@ public class AppOpsController implements ResourceController<AppOps> {
       if( podResource.get() != null )
       {
         // pull out the message for pod and add to the overall message
-        AppOpsStatus status = updateLogLevels(podResource.get(), strNewLevel );
-        sbMsg.append(status.getMessage());
+        AppOpsStatus podUpdateStatus = updateLogLevels(podResource.get(), strNewLevel );
+        sbMsg.append(podUpdateStatus.getMessage());
+        anyPending = ( anyPending || podUpdateStatus.pending );
       }
       else
       {
@@ -325,7 +350,10 @@ public class AppOpsController implements ResourceController<AppOps> {
       }
     }
 
-    return AppOpsStatus.create(sbMsg.toString());
+    status.setMessage(sbMsg.toString());
+    status.pending = anyPending;
+
+    return status;
   }
 
   @ConfigProperty(name="demo-operator.pod-uri-override", defaultValue=" ")
@@ -342,9 +370,13 @@ public class AppOpsController implements ResourceController<AppOps> {
   }
 
   // returns three if pod was updated successfully
-  private AppOpsStatus updateLogLevels(Pod pod, String newThreshold) {
+  private AppOpsStatus updateLogLevels(Pod pod, String newThreshold) 
+  {
     StringBuilder sbMsg = new StringBuilder();
     String podName = pod.getMetadata().getName();
+
+    AppOpsStatus status = AppOpsStatus.create("");
+    status.pending = true;
 
     sbMsg.append(String.format("Pod: %s> ", pod.getMetadata().getName()));
 
@@ -359,8 +391,9 @@ public class AppOpsController implements ResourceController<AppOps> {
           log.info(String.format("Updated log level for pod %s", podName));
         }
 
+        // if here, then pod log levels successfully updated
         sbMsg.append(String.format("%s",newThreshold));
-        
+        status.pending = false;
       }
       catch (Exception e) {
         log.error(String.format("Unable to update pod %s.  Error is: %s", podName, e.toString()));
@@ -375,6 +408,7 @@ public class AppOpsController implements ResourceController<AppOps> {
       sbMsg.append(String.format("Not running..."));
     }
 
-    return AppOpsStatus.create(sbMsg.toString());
+    status.setMessage(sbMsg.toString());
+    return status;
   }
 }

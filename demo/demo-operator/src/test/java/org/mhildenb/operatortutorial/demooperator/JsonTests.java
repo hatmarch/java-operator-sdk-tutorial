@@ -43,6 +43,16 @@ public class JsonTests {
     }
 
     @Test
+    public void shouldFindBarInAppOps()
+    {
+        assertTrue( myAppOps != null, "No AppOpsSpec resource");
+        
+        var appOps = new AppOps();
+        appOps.setSpec(myAppOps);
+        assertTrue( appOps.isInPodSpec("bar"), "Could not find bar");
+    }
+
+    @Test
     public void shouldNotFindBarNoneInPodLogSpec()
     {
         assertTrue( myAppOps != null, "No AppOpsSpec resource");
