@@ -134,15 +134,21 @@ public class AppOpsController implements ResourceController<AppOps> {
       log.info(String.format("Pod %s in namespace %s is deleted", resource.getMetadata().getName(),
       resource.getMetadata().getNamespace(), resource.getStatus().getMessage()));
 
-      // FIXME: Remove pod from spec
+      // Remove the pod from the AppOps Spec so we quit trying to update logging
       assert( resource.getSpec().getPodLogSpecs() != null );
-      Boolean removed = resource.getSpec().getPodLogSpecs().remove(podEvent.getPod().getMetadata().getName());
-      if (removed) {
-        // FIXME: Update status
+      String podName = podEvent.getPod().getMetadata().getName();
+      var removedSpec = resource.getSpec().removePodLogSpec(podName);
+      if (removedSpec.isPresent()) {
+        log.info(String.format("Removing pod %s from AppOps spec", podName ));
+        
+        // FIXME: Update status?
+
         return UpdateControl.updateCustomResource(resource);
       }
       else
       {
+        log.info(String.format("Could find removed pod %s in AppOps spec", podName ));
+        
         UpdateControl.noUpdate();
       }
     }
@@ -209,6 +215,7 @@ public class AppOpsController implements ResourceController<AppOps> {
       case MODIFIED:
         return onAppOpsModified(resource, latestAppOpsEvent);
       case DELETED:
+        // SDK calls deleteResource which has a different return value instead
         assert(false); //, "Should not be getting a delete event here");
         break;
       default:

@@ -50,4 +50,40 @@ public class JsonTests {
         Optional<PodLogSpec> spec = myAppOps.getPodLogSpec("barNone");
         assertTrue( !spec.isPresent() );
     }
+
+    @Test
+    public void shouldRemoveBarFromPodLogSpec()
+    {
+        assertTrue( myAppOps != null, "No AppOpsSpec resource");
+        
+        Optional<PodLogSpec> spec = myAppOps.removePodLogSpec("bar");
+        assertTrue( spec.isPresent() );
+
+        assertTrue( myAppOps.getPodLogSpecs().size() == 2, "There are not two elements in the list" );
+        int count = 0;
+        String[] names= {"foo", "baz"};
+        for( PodLogSpec s : myAppOps.getPodLogSpecs() )
+        {
+            assertTrue(s.name.equals(names[count]), "Order or resulting list appears wrong"); 
+            count++; 
+        }
+    }
+
+    @Test
+    public void shouldNotRemoveBarNoneFromPodLogSpec()
+    {
+        assertTrue( myAppOps != null, "No AppOpsSpec resource");
+        
+        Optional<PodLogSpec> spec = myAppOps.removePodLogSpec("barnone");
+        assertTrue( !spec.isPresent() );
+
+        assertTrue( myAppOps.getPodLogSpecs().size() == 3, "There are missing elements in the list" );
+        int count = 0;
+        String[] names= {"foo", "bar", "baz"};
+        for( PodLogSpec s : myAppOps.getPodLogSpecs() )
+        {
+            assertTrue(s.name.equals(names[count]), "Order or resulting list appears wrong"); 
+            count++; 
+        }
+    }
 }

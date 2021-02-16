@@ -54,4 +54,20 @@ public class AppOpsSpec {
     
     return Optional.of(podLogLevels.get(index));
   }
+
+  public Optional<PodLogSpec> removePodLogSpec( String podName )
+  {
+    if( this.podLogLevels == null )
+    {
+      return Optional.empty();
+    }
+
+    int index = podLogLevels.indexOf(PodLogSpec.createFromName(podName));
+    if (index < 0)
+    {
+      return Optional.empty();
+    }
+    
+    return Optional.of(podLogLevels.remove(index));
+  }
 }
