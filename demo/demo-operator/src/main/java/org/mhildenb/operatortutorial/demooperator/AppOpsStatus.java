@@ -1,23 +1,20 @@
 package org.mhildenb.operatortutorial.demooperator;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AppOpsStatus {
 
-    public static AppOpsStatus create(String message)
+    public static AppOpsStatus create()
     {
         AppOpsStatus status = new AppOpsStatus();
-        status.message = message;
         status.pending = false;
         return status;
     }
 
-    private String message;
+    @JsonProperty("pods")
+    public List<PodLogStatus> podLogStatuses;
+
     public Boolean pending;
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }

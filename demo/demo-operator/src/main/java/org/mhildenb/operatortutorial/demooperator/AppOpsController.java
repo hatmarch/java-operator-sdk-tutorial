@@ -290,7 +290,7 @@ public class AppOpsController implements ResourceController<AppOps> {
 
     // reset pod list and status
     resource.getSpec().setPodLogSpecs(new ArrayList<PodLogSpec>());
-    resource.setStatus(AppOpsStatus.create("Initalized"));
+    resource.setStatus(AppOpsStatus.create());
 
     // If we get here then no changes this loop
     return UpdateControl.updateCustomResourceAndStatus(resource);
@@ -309,18 +309,12 @@ public class AppOpsController implements ResourceController<AppOps> {
 
   private AppOpsStatus updateLogLevels( List<PodLogSpec> podLogSpecs, String strDefaultLogLevel) 
   {
-    StringBuilder sbMsg = new StringBuilder();
-    AppOpsStatus status = AppOpsStatus.create("");
+    AppOpsStatus status = AppOpsStatus.create();
     status.pending = true;
+    status.podLogStatuses = new ArrayList<PodLogStatus>();
 
     Boolean anyPending = false;
     for (PodLogSpec podLogSpec : podLogSpecs) {
-
-      // if we've been through more than once add a newline
-      if( sbMsg.length() > 0)
-      {
-        sbMsg.append(String.format("%n"));
-      }
 
       // pull out the message for pod and add to the overall message
       String strNewLevel = strDefaultLogLevel;
@@ -332,9 +326,11 @@ public class AppOpsController implements ResourceController<AppOps> {
       var podResource = kubernetesClient.pods().withName(podLogSpec.name);
       if( podResource.get() != null )
       {
-        // pull out the message for pod and add to the overall message
+        // merge in any podLogStatus from updateLogLevels (should only be one)
         AppOpsStatus podUpdateStatus = updateLogLevels(podResource.get(), strNewLevel );
-        sbMsg.append(podUpdateStatus.getMessage());
+        status.podLogStatuses.addAll(podUpdateStatus.podLogStatuses);
+
+        // If this status returns pending, then there is a pod that couldn't be accessed
         anyPending = ( anyPending || podUpdateStatus.pending );
       }
       else
@@ -344,7 +340,6 @@ public class AppOpsController implements ResourceController<AppOps> {
       }
     }
 
-    status.setMessage(sbMsg.toString());
     status.pending = anyPending;
 
     return status;
@@ -366,13 +361,15 @@ public class AppOpsController implements ResourceController<AppOps> {
   // returns three if pod was updated successfully
   private AppOpsStatus updateLogLevels(Pod pod, String newThreshold) 
   {
-    StringBuilder sbMsg = new StringBuilder();
     String podName = pod.getMetadata().getName();
 
-    AppOpsStatus status = AppOpsStatus.create("");
+    AppOpsStatus status = AppOpsStatus.create();
     status.pending = true;
 
-    sbMsg.append(String.format("Pod: %s> ", pod.getMetadata().getName()));
+    status.podLogStatuses = new ArrayList<PodLogStatus>();
+
+    var podStatus = PodLogStatus.create(pod.getMetadata().getName());
+    status.podLogStatuses.add(podStatus);
 
     if (pod.getStatus().getPhase().equals("Running")) {
       try {
@@ -386,23 +383,28 @@ public class AppOpsController implements ResourceController<AppOps> {
         }
 
         // if here, then pod log levels successfully updated
-        sbMsg.append(String.format("%s",newThreshold));
+        podStatus.currentLogThreshold = desiredThreshold.toString();
         status.pending = false;
       }
       catch (Exception e) {
         log.error(String.format("Unable to update pod %s.  Error is: %s", podName, e.toString()));
 
-        sbMsg.append(String.format("ERROR: %s",e.getMessage()));
+        podStatus.message = String.format("ERROR: %s",e.getMessage());
       }
     }
     else
     {
       log.info( String.format("Skipping pod (%s) not in running state.", podName));
 
-      sbMsg.append(String.format("Not running..."));
+      podStatus.message = "Not running...";
     }
 
-    status.setMessage(sbMsg.toString());
+    // truncate message
+    if( podStatus.message != null && podStatus.message.length() > 128)
+    {
+      podStatus.message = String.format("%s...", podStatus.message.substring(0,125));
+    }
+
     return status;
   }
 }

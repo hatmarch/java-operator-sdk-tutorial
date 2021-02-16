@@ -41,8 +41,17 @@ spec:
           status:
             type: object
             properties:
-              message:
-                type: string
+              pods:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    pod:
+                      type: string
+                    currentLogThreshold:
+                      type: string
+                    message:
+                      type: string
               pending:
                 type: boolean
         required: [spec]
