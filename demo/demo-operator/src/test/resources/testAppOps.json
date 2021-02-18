@@ -1,7 +1,7 @@
 {
     "deploymentLabel": "demo-app",
     "logging": {
-      "logThreshold": "FATAL",
+      "defaultLogLevel": "FATAL",
       "outstandingRequestThreshold": 2
     },
     "pods": 
