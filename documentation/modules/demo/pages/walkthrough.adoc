@@ -1,0 +1,256 @@
+= Demo Walkthrough
+
+== Prereqs
+
+See xref:demo:setup.adoc[setup].  Before attempting the walkthrough you should run this script:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+pass:[${DEMO_HOME}]/scripts/prepare-demo.sh
+----
+
+If the script ran successfully, you should see the following output:
+[.console-output]
+[source,bash,subs="attributes+,+macros"]
+----
+NAME            STATUS   AGE
+operator-test   Active   55s
+namespace "operator-test" deleted
+customresourcedefinition.apiextensions.k8s.io "appops.org.mhildenb.operatortutorial" deleted
+namespace/operator-test created
+Context "minikube" modified.
+customresourcedefinition.apiextensions.k8s.io/appops.org.mhildenb.operatortutorial created
+deployment.apps/demo-app created
+Waiting for deployment "demo-app" rollout to finish: 0 of 1 updated replicas are available...
+deployment "demo-app" successfully rolled out
+demo-app successfully deployed
+namespace/demo-operator unchanged
+serviceaccount/demo-operator created
+clusterrolebinding.rbac.authorization.k8s.io/operator-admin configured
+deployment.apps/demo-operator created
+Waiting for deployment "demo-operator" rollout to finish: 0 of 1 updated replicas are available...
+deployment "demo-operator" successfully rolled out
+demo-operator successfully deployed
+----
+
+== Terminal Setup
+
+For this demo VSCode is assumed.  Make sure you have 4 terminals all with a kubernetes context pointing to the namespace `operator-test`.  Click the tabs below to see information about each terminal and any initial commands that need to be run
+
+[tabs,subs="attributes+,+macros"]	
+====	
+Terminal 1::
++
+--
+Terminal one will be used for running local build commands and will be particularly important if showing a locally running build
+--
+Terminal 2::
++
+--
+Terminal 2 will be our CR watch window.  This is where we'll see updates to our CustomResource.
+
+Run the following command to get it started:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+# watch updates every second with this command
+watch -t -d -n 1 -x -- kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }, {"op": "remove", "path": "/metadata/annotations" } ]' --dry-run=client
+----
+--
+Terminal 3::
++
+--
+The third terminal should be running the logs of the application (which will initially be more verbose than specified in the `AppOps` custom resource.
+
+Run the following command to get this terminal ready:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+# start logging the demo app
+stern demo-app --since=1s -n operator-test
+----
+--
+Terminal 4::
++
+--
+The fourth terminal is used for issuing k8 commands
+--
+====
+
+When you've finished, your terminals should look something like this (though the content will not be the same at this point)
+
+image::cr-terminals.png[]
+
+[#demo1]
+== Demo 1: Intro to the application
+
+.  Make a call to the hello endpoint
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+curl pass:[${DEMO_OPERATOR_POD_URI_OVERRIDE}]/hello
+----
++
+[.console-output]
+[source,bash,subs="attributes+,+macros"]
+----
+hello% 
+----
++
+. Next show terminal 3's logs and how its logging at a `INFO` level
++
+. Show our app's AppOps in vscode by opening `appops-crd.yaml` quickly
++
+. In the 4th terminal, show that the demo operator is running
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl get deploy/demo-operator
+----
++
+[.console-output]
+----
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+demo-operator   1/1     1            1           8m
+----
+. Explain that the watch window, terminal 2 is watching the CR we're about to create
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl apply -f pass:[${DEMO_HOME}]/demo/kube/myapp-cr.yaml
+----
++
+. Once the CR is applied, you should see the watch window change and the logging get less verbose
++
+image::cr-terminals.png[]
+
+[#demo2]
+== Demo 2: Show Operator Responding to Site Load
+
+. Run the following command to increase load threshold
++
+[tabs,subs="attributes+,+macros"]	
+====	
+Terminal 4::
++
+--
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+hey -n 30 -c 30 -q 1 pass:[${DEMO_OPERATOR_POD_URI_OVERRIDE}]/hello
+----
+--
+====
++
+. You should then see the information in the CR change as well as the app's logging get more verbose:
++
+image::cr-load.png[]
+
+=== Other things to try
+
+==== Edit the Custom Resource directly
+
+. Edit the Custom Resource directly
++
+[tabs]
+====
+Terminal 4::
++
+--
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl edit appops
+----
+--
+====
+. Change something like the `defaultLogThreshold` and save the edit
+. Notice that the watch in *Terminal 2* updates and the logs of the pod in *Terminal 3* has changed accordingly
+
+==== Increase the number of pods
+
+. Run the following command to increase the number of pods
++
+[tabs]
+====
+Terminal 4::
++
+--
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl patch deploy/demo-app --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 2 }]'
+----
+--
+====
++
+. Notice how the custom resource changes in *Terminal 2* as it should now show multiple pods
+
+[#demo3]
+== Demo3: Run the operator in the debugger to show how it works
+
+To run this demo you will need to run some setup first
+
+. First setup your environment accordingly
++
+[tabs,subs="attributes+,+macros"]	
+====	
+Terminal 1::
++
+--
+Make sure the following environment variables are set:
+
+** `DEMO_OPERATOR_POD_URI_OVERRIDE=http://192.168.86.87:8008`
+** `LOG_MODULE_TEST_INTEGRATION_URI=http://192.168.86.87:8008`
+** `USER=<your quay.io user>`
+** `PASSWORD=<your quay.io password>`
+--
+====
++
+. Remove the operator from the cluster
++
+[tabs,subs="attributes+,+macros"]	
+====	
+Terminal 4::
++
+--
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+kubectl delete deploy/demo-operator
+----
+--
+====
++
+. Run the following to start the app running locally
++
+[tabs]
+====
+Terminal 1::
++
+--
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+cd pass:[${DEMO_HOME}]/demo/demo-operator
+mvn quarkus:dev -Dsuspend
+----
+--
+====
++
+. the `-Dsuspend` means that the operator will not move on until you connect the debugger
++
+[IMPORTANT]
+====
+Before demonstrating in the debugger make sure:
+
+* Number of pods is set to 0
+* `DEMO_OPERATOR_POD_URI_OVERRIDE=http://192.168.86.87:8008`
+====
++

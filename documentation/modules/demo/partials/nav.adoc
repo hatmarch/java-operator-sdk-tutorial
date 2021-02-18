@@ -1,1 +1,2 @@
 ** xref:demo:setup.adoc[Demo Setup]
+** xref:demo:walkthrough.adoc[Demo Walkthrough]
