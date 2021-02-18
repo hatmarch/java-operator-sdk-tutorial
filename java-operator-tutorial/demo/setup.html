@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Demo Setup :: Java Operator Tutorial</title>
+    <link rel="canonical" href="https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/demo/setup.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="walkthrough.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="icon" href="../../_/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img
+          src="../../_/img/header_logo.png" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" href="https://hatmarch.github.io/java-operator-sdk-tutorial">Java Operator Tutorial</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Books</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">CheatSheets</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">CheatSheet A</a>
+            <a class="navbar-item" href="#">CheatSheet B</a>
+            <a class="navbar-item" href="#">CheatSheet C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Upcoming Events</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Event A</a>
+            <a class="navbar-item" href="#">Event B</a>
+            <a class="navbar-item" href="#">Event C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Tutorial A</a>
+            <a class="navbar-item" href="#">Tutorial B</a>
+            <a class="navbar-item" href="#">Tutorial C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="java-operator-tutorial" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Java and Quarkus Operator Tutorial</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="index.html">Quarkus Operator Demo</a>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="setup.html">Demo Setup</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="walkthrough.html">Demo Walkthrough</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../01-setup.html">Tutorial (Placeholder)</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Java and Quarkus Operator Tutorial</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">Java and Quarkus Operator Tutorial</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Java and Quarkus Operator Tutorial</a></li>
+    <li><a href="index.html">Quarkus Operator Demo</a></li>
+    <li><a href="setup.html">Demo Setup</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="file:///workspaces/java-operator-sdk-tutorial/documentation/modules/demo/pages/setup.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Demo Setup</h1>
+<div class="sect1">
+<h2 id="_connecting_to_minikube_cluster"><a class="anchor" href="#_connecting_to_minikube_cluster"></a>Connecting to Minikube cluster</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you have made a minikube instance available externally, then you can setup your environment to work with that cluster.  There are some pre-requisites though</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>You must have ssh access to the machine running minikube (call it <code>MINIKUBE_HOST</code>)</p>
+</li>
+<li>
+<p>The <code>MINIKUBE_HOST</code> needs to have <code>scp</code> installed</p>
+</li>
+<li>
+<p>You need to have a key pair generated (e.g. from <code>ssh-keygen</code>) and have access to both the public and private key</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Public key path is <code>PUBLIC_KEY_PATH</code></p>
+</li>
+<li>
+<p>Private key path is <code>PRIVATE_KEY_PATH</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>You must be able to ssh login as the user who created the minikube cluster on the remote machine (call it <code>MINIKUBE_USER</code>)</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Once you have satisfied the pre-requisites, here&#8217;s how you can get access to the cluster</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Copy the public key to the remote machine to allow access using the private key:</p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ssh-copy-id -i ${PUBLIC_KEY_PATH} ${MINIKUBE_USER}@${MINIKUBE_HOST}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Next, run the following command to pull necessary certs and create a suitable kubeconfig</p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">${DEMO_HOME}/scripts/create-kubeconfig.sh ${MINIKUBE_HOST} ${PRIVATE_KEY_PATH} ${MINIKUBE_USER}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building"><a class="anchor" href="#_building"></a>Building</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To build a new containerized demo app, follow these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Rebuild parent project</p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mvn package -f ${DEMO_HOME}/demo</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You need to build the parent project because the <code>demo-app</code> and <code>demo-operator</code> rely on a common <code>log-module</code> package that is not uploaded to maven.  Thus all three are bundled together so that the parent project can handle the dependencies.  This is why you will see this warning when compiling:</p>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">[WARNING]
+[WARNING] Some problems were encountered while building the effective model for org.mhildenb.operatortutorial:demo-app:jar:1.0.0
+[WARNING] 'dependencies.dependency.systemPath' for org.mhildenb.operatortutorial:log-module:jar should not point at files within the project directory, ${project.basedir}/../log-module/target/log-module-1.0.0.jar will be unresolvable by dependent projects @ line 44, column 19
+[WARNING]
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING]
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING]</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>This should show all test cases passing and in the output you should see something like this near the end of the output:</p>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 6138ms
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO]
+[INFO] demo 1.0 ........................................... SUCCESS [  0.009 s]
+[INFO] log-module 1.0.0 ................................... SUCCESS [  8.061 s]
+[INFO] demo-app 1.0.0 ..................................... SUCCESS [ 13.832 s]
+[INFO] demo-operator 1.0.0 ................................ SUCCESS [ 10.445 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  34.749 s
+[INFO] Finished at: 2021-02-08T07:46:59Z
+[INFO] ------------------------------------------------------------------------</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="deploy"><a class="anchor" href="#deploy"></a>Deploying demo-app</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Next, specifically build the demo-app for container image:</p>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You first must set the following environment variables to log into your chosen image registry (e.g. <code>quay.io</code>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>USER</code></p>
+</li>
+<li>
+<p><code>PASSWORD</code></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mvn -B package -DskipTests \
+        -Dquarkus.container-image.build=true \
+        -Dquarkus.container-image.push=true \
+        -Dquarkus.container-image.registry=quay.io \
+        -Dquarkus.container-image.group=mhildenb \
+        -Dquarkus.container-image.name=tutorial-operator-demoapp \
+        -Dquarkus.jib.base-jvm-image=fabric8/java-alpine-openjdk11-jre \
+        -Dquarkus.container-image.username=${USER} -Dquarkus.container-image.password=${PASSWORD} \
+        -Dquarkus.container-image.tag=latest \
+        -f ${DEMO_HOME}/demo/demo-app</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Once the new image is built, you can deploy the <code>demo-app</code>, with the following command:</p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f ${DEMO_HOME}/demo/kube/demo-app/demo-app-deploy.yaml</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This will deploy to the current context namespace.  Use <code>-n</code> parameter to deploy to another namespace</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="deploy-operator"><a class="anchor" href="#deploy-operator"></a>Deploying Demo Operator</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Next, specifically build the demo-operator for container image:</p>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You first must set the following environment variables to log into your chosen image registry (e.g. <code>quay.io</code>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>USER</code></p>
+</li>
+<li>
+<p><code>PASSWORD</code></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mvn -B package -DskipTests \
+        -Dquarkus.container-image.build=true \
+        -Dquarkus.container-image.push=true \
+        -Dquarkus.container-image.registry=quay.io \
+        -Dquarkus.container-image.group=mhildenb \
+        -Dquarkus.container-image.name=tutorial-operator-demoop \
+        -Dquarkus.jib.base-jvm-image=fabric8/java-alpine-openjdk11-jre \
+        -Dquarkus.container-image.username=${USER} \
+        -Dquarkus.container-image.password=${PASSWORD} \
+        -Dquarkus.container-image.tag=latest \
+        -f ${DEMO_HOME}/demo/demo-operator</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Once the new image is built, you can deploy the <code>demo-operator</code>, with the following command:</p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f ${DEMO_HOME}/demo/kube/operator-deploy.yaml</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This currently MUST deploy to the <code>operator-test</code> namespace.  Make sure this namespace is targeted when deploying the operator.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_integration_tests"><a class="anchor" href="#_running_integration_tests"></a>Running integration tests</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_log_module"><a class="anchor" href="#_log_module"></a>log-module</h3>
+<div class="paragraph">
+<p>The logging module has some tests that exercise the <code>LoggerClient</code> (which sets and gets the <code>Logger.LogLevel</code> at runtime from the <code>demo-app</code>).  To run these tests:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>First, connect to a running demo app.  If using minikube, easiest might be to <code>port-forward</code> to <a href="#deploy">the app you just deployed</a></p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">oc port-forward svc/demo-app 8084:8080</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>You can override the host that will be used for the integration test by either changing it (<code>log-module.test.integration-uri</code>) in the <code>application.properties</code> file or you can set in the environment like this:</p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export log_module_test_integration_uri="http://localhost:8084"</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Finally, build the (<code>log-module</code>) project (or parent) with the <code>integrationTest</code> system property</p>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mvn clean package -DintegrationTest -f $DEMO_HOME/demo/log-module</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exposing_services_in_minikube"><a class="anchor" href="#_exposing_services_in_minikube"></a>Exposing Services in Minikube</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_fedora"><a class="anchor" href="#_fedora"></a>Fedora</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Expose the deployment as a <code>NodePort</code></p>
+<div class="listingblock">
+<div class="content">
+<pre>kubectl expose deploy/demo-app --type NodePort</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Next create a proxy in minikube</p>
+<div class="listingblock">
+<div class="content">
+<pre>minikube service --url demo-app -n operator-test</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Gather the IP Address and Port and set in variables <code>TARGET_IP</code> and <code>TARGET_PORT</code> respectively</p>
+<div class="listingblock">
+<div class="content">
+<pre>minikube service list</pre>
+</div>
+</div>
+<div class="listingblock console-output">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">|---------------|------------|--------------|---------------------------|
+|   NAMESPACE   |    NAME    | TARGET PORT  |            URL            |
+|---------------|------------|--------------|---------------------------|
+| default       | kubernetes | No node port |
+| kube-system   | kube-dns   | No node port |
+| operator-test | demo-app   |         #8080#| #http://192.168.49.2:30453# |
+|---------------|------------|--------------|---------------------------|</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Update the iptables with the following:</p>
+<div class="listingblock">
+<div class="content">
+<pre>iptables -t nat -A PREROUTING -p tcp --dport 8008 -j DNAT --to-destination $TARGET_IP:$TARGET_PORT</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_wsl"><a class="anchor" href="#_wsl"></a>WSL</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open a new fedora wsl instance</p>
+</li>
+<li>
+<p>run the following:</p>
+<div class="listingblock">
+<div class="content">
+<pre>minikube service --url demo-app -n operator-test</pre>
+</div>
+</div>
+</li>
+<li>
+<p>You should get output like the following:</p>
+<div class="listingblock">
+<div class="content">
+<pre>😿  service operator-test/demo-app has no node port
+🏃  Starting tunnel for service demo-app.
+|---------------|----------|-------------|------------------------|
+|   NAMESPACE   |   NAME   | TARGET PORT |          URL           |
+|---------------|----------|-------------|------------------------|
+| operator-test | demo-app |             | http://127.0.0.1:40289 |
+|---------------|----------|-------------|------------------------|
+http://127.0.0.1:40289</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Open a powershell on the host as Administrator</p>
+</li>
+<li>
+<p>Set the port of the above command a variable <code>$svcPort</code></p>
+</li>
+<li>
+<p>In powershell on the host, run the following command</p>
+<div class="listingblock">
+<div class="content">
+<pre> netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=8086 connectaddress=127.0.0.1 connectport=$svcPort</pre>
+</div>
+</div>
+</li>
+<li>
+<p>You can then access the service by calling the window host&#8217;s IP address at port 8086</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_useful_commands"><a class="anchor" href="#_useful_commands"></a>Useful commands</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To override the URL that should be used when accessing a pod (useful when running operator locally) set the property <code>demo-operator.pod-uri-override</code> in the <code>application properties</code> of the <code>demo-operator</code>.  Alternatively, set this in the environment before running <code>mvn:quarkus:dev</code></p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">DEMO_OPERATOR_POD_URI_OVERRIDE="http://192.168.86.48:8086"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To change the number of replicas to 0</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl patch deploy/demo-app --type='json' -p='[{"op": "replace", "path": "/spec/replicas", "value": 0 }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To delete the <code>appops</code> custome resouce with the finalizer:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl patch appops/my-bespoke-app --type='json' -p='[{"op": "remove", "path": "/metadata/finalizers" }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To watch the cr without managed fields:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }]' --dry-run
+
+# watch updates every second with this command
+watch -d -n 1 -x -- kubectl patch appops/my-bespoke-app -o yaml --type='json' -p='[{"op": "remove", "path": "/metadata/managedFields" }, {"op": "remove", "path": "/metadata/annotations" } ]' --dry-run=client</code></pre>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html" class="query-params-link">Quarkus Operator Demo</a></span>
+  <span class="next"><a href="walkthrough.html" class="query-params-link">Demo Walkthrough</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../../_/js/vendor/clipboard.js"></script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
