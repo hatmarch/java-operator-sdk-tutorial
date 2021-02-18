@@ -1,6 +1,7 @@
-* xref:01-setup.adoc[Tutorial (Placeholder)]
-** xref:01-setup.adoc#prerequisite[Prerequisites]
-** xref:01-setup.adoc#minikube[Setup Minikube]
-
 * xref:demo:index.adoc[Quarkus Operator Demo]
 include::demo:partial$nav.adoc[]
+
+* xref:01-setup.adoc[Tutorial (Placeholder)]
+// ** xref:01-setup.adoc#prerequisite[Prerequisites]
+// ** xref:01-setup.adoc#minikube[Setup Minikube]
+

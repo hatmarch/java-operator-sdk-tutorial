@@ -193,7 +193,7 @@ kubectl patch deploy/demo-app --type='json' -p='[{"op": "replace", "path": "/spe
 . Notice how the custom resource changes in *Terminal 2* as it should now show multiple pods
 
 [#demo3]
-== Demo3: Run the operator in the debugger to show how it works
+== Demo 3: Run the operator in the debugger to show how it works
 
 To run this demo you will need to run some setup first
 
