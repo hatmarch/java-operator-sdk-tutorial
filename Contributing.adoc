@@ -1,0 +1,55 @@
+= Contributing 
+
+The documentation is in `asciidoc` (`.adoc`) format in the `documentation` subdirectory and is laid out in a way that a documentation website can be generated with link:https://docs.antora.org/antora/2.3/[antora] 
+
+
+== Generating Documentation Locally
+
+The easiest way to generate the documentation is to run this repo within Visual Studio with Remote Container extensions enabled.  
+
+From within the devcontainer, simply run this command in the root of the repo to generate a live (local) site of the documentation (that will be automatically updated as you change the files):
+
+----
+gulp
+----
+
+== Deploying the Documentation
+
+For further configuration of the site, edit the link:site.yml[site.yaml] file.
+
+=== In a container
+
+Run the following command from the root of the repo to generate a container image that is capable of serving the documentation for the site.  NOTE: replace `IMAGE_TAG` with an appropriate container name
+
+----
+IMAGE_TAG=quay.io/mhildenb/java-tutorial-docs:1.0
+docker build . -t ${IMAGE_TAG}
+----
+
+=== To Github Pages
+
+[IMPORTANT]
+====
+These instruction assume that your repo is setup to serve github pages from the gh-pages branch of your repo
+====
+
+. Update the link:site.yml[site.yml] file accordingly to represent the documentation you want to publish
+** e.g. set the tag or the branch of this repo where the documentation should be generated from
+** e.g. setup special attributes
+. Run the link:scripts/github-pages-publish.sh[github-pages-publish.sh] script:
++
+----
+$DEMO_HOME/github-pages-publish.sh
+----
++
+. If the publish was successful, you should see in the output:
++
+----
+Site published successfully!
+----
++
+. Within a few minutes, your site should be available at the appropriate github pages address (e.g. link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/[https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/])
+
+== More information 
+
+Check the build courseware https://redhat-scholars.github.io/build-course[documentation]  on how folder structure, how to use macros and other gotchas
