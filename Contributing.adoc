@@ -39,7 +39,7 @@ These instruction assume that your repo is setup to serve github pages from the 
 . Run the link:scripts/github-pages-publish.sh[github-pages-publish.sh] script:
 +
 ----
-$DEMO_HOME/github-pages-publish.sh
+$DEMO_HOME/scripts/github-pages-publish.sh
 ----
 +
 . If the publish was successful, you should see in the output:
