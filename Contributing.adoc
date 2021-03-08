@@ -5,7 +5,7 @@ The documentation is in `asciidoc` (`.adoc`) format in the `documentation` subdi
 
 == Generating Documentation Locally
 
-The easiest way to generate the documentation is to run this repo within Visual Studio with Remote Container extensions enabled.  
+The easiest way to generate the documentation is to run this repo within Visual Studio with Remote Container extensions enabled.  See link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/demo/setup.html[here] for more info
 
 From within the devcontainer, simply run this command in the root of the repo to generate a live (local) site of the documentation (that will be automatically updated as you change the files):
 

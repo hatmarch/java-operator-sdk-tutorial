@@ -4,7 +4,7 @@ This repo contains a demo walkthrough and a tutorial for using the link:https://
 
 == Instructions
 
-Please see documentation for the link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/demo/walkthrough.html[walkthrough] and link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/01-setup.html[tutorial] for how to setup and walk through this demo and tutorial.
+Please see the link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/demo/setup.html[github pages documentation] for the link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/demo/walkthrough.html[walkthrough] and link:https://hatmarch.github.io/java-operator-sdk-tutorial/java-operator-tutorial/01-setup.html[tutorial].
 
 == Contributing
 

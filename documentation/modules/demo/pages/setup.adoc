@@ -1,5 +1,15 @@
 = Demo Setup
 
+[IMPORTANT]
+.Visual Studio Code Remote Development (Containers)
+====
+To limit the amount of incompatibility in setting up the demo and tutorial, all the commands that are listed are expected to be run in an appropriately setup container.  Specifically, this demo supports the link:https://code.visualstudio.com/docs/remote/containers[VS Code Remote Development (Containers)] as can be seen in the `.devcontainer` directory.  
+
+All commands that are listed for the demo and tutorial are assumed to be run from within the terminal (and thus "devcontainer") of VSCode.  The container has been setup to have all the necessary command and tools necessary to run and compile the tutorial/demo.
+
+This tutorial/demo was developed using Visual Studio Code Remote Development on a MacBook Pro using Docker for Desktop (Mac)
+====
+
 == Connecting to Minikube cluster
 
 If you have made a minikube instance available externally, then you can setup your environment to work with that cluster.  There are some pre-requisites though
