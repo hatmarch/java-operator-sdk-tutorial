@@ -101,6 +101,7 @@ You first must set the following environment variables to log into your chosen i
 
 * `USER`
 * `PASSWORD`
+* `REGISTRY`
 ====
 +
 [.console-input]
@@ -109,8 +110,8 @@ You first must set the following environment variables to log into your chosen i
 mvn -B package -DskipTests \
         -Dquarkus.container-image.build=true \
         -Dquarkus.container-image.push=true \
-        -Dquarkus.container-image.registry=quay.io \
-        -Dquarkus.container-image.group=mhildenb \
+        -Dquarkus.container-image.registry=${REGISTRY} \
+        -Dquarkus.container-image.group=${USER} \
         -Dquarkus.container-image.name=tutorial-operator-demoapp \
         -Dquarkus.jib.base-jvm-image=fabric8/java-alpine-openjdk11-jre \
         -Dquarkus.container-image.username=pass:[${USER}] -Dquarkus.container-image.password=pass:[${PASSWORD}] \
@@ -142,6 +143,7 @@ You first must set the following environment variables to log into your chosen i
 
 * `USER`
 * `PASSWORD`
+* `REGSITRY` (e.g. docker.io)
 ====
 +
 [.console-input]
@@ -150,8 +152,8 @@ You first must set the following environment variables to log into your chosen i
 mvn -B package -DskipTests \
         -Dquarkus.container-image.build=true \
         -Dquarkus.container-image.push=true \
-        -Dquarkus.container-image.registry=quay.io \
-        -Dquarkus.container-image.group=mhildenb \
+        -Dquarkus.container-image.registry=${REGISTRY} \
+        -Dquarkus.container-image.group=${USER} \
         -Dquarkus.container-image.name=tutorial-operator-demoop \
         -Dquarkus.jib.base-jvm-image=fabric8/java-alpine-openjdk11-jre \
         -Dquarkus.container-image.username=pass:[${USER}] \
@@ -226,7 +228,7 @@ minikube service list
 ----
 +
 [.console-output]
-[source,bash,subs="+attributes,+macros"]
+[source,bash,subs="+attributes,+macros,+quotes"]
 ----
 |---------------|------------|--------------|---------------------------|
 |   NAMESPACE   |    NAME    | TARGET PORT  |            URL            |
