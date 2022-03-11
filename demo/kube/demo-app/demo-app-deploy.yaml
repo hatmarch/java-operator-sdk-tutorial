@@ -17,7 +17,7 @@ spec:
 #      serviceAccount: tutorial-operator
       containers:
       - name: app
-        image: quay.io/mhildenb/tutorial-operator-demoapp:latest
+        image: docker.io/mhildema/tutorial-operator-demoapp:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

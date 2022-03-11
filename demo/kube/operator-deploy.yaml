@@ -43,7 +43,7 @@ spec:
       serviceAccount: demo-operator
       containers:
       - name: operator
-        image: quay.io/mhildenb/tutorial-operator-demoop:latest
+        image: docker.io/mhildema/tutorial-operator-demoop:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
