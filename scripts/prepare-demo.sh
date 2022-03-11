@@ -16,7 +16,7 @@ kubectl get ns $PROJECT 2>/dev/null &&
     kubectl delete ns ${PROJECT}
 
 # Delete the old CRD (we don't want to have versioning)
-kubectl delete -f ${DEMO_HOME}/demo/kube/appops-crd.yaml
+kubectl delete -f ${DEMO_HOME}/demo/kube/appops-crd.yaml || true
 
 # above should not return until ns is actually deleted
 kubectl create ns ${PROJECT}
