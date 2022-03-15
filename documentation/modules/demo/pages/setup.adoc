@@ -209,6 +209,16 @@ mvn clean package -DintegrationTest -f $DEMO_HOME/demo/log-module
 
 === Fedora
 
+==== Exposing minikube Kubernetes API
+
+Once you have minikube running you can expose the instance using `iptables`.  The following command will work for docker driver and will forward all calls on the host at port `8443` to the internal minikube instance:
+
+----
+sudo iptables -t nat -A PREROUTING -p tcp --dport 8443 -j DNAT --to-destination $(minikube ip):8443
+----
+
+==== Exposing DemoApp
+
 . Expose the deployment as a `NodePort`
 +
 ----
@@ -235,7 +245,7 @@ minikube service list
 |---------------|------------|--------------|---------------------------|
 | default       | kubernetes | No node port |
 | kube-system   | kube-dns   | No node port |
-| operator-test | demo-app   |         #8080#| #http://192.168.49.2:30453# |
+| operator-test | demo-app   |          #8080#| #http://192.168.49.2:30453# |
 |---------------|------------|--------------|---------------------------|
 ----
 +
