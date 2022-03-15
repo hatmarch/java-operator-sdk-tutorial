@@ -25,8 +25,12 @@ if [[ ! -d ${CERTS_DIR} ]]; then
     mkdir -p ${CERTS_DIR}
 fi
 
+# create a ssh config for use in this container
+SSH_CONFIG_FILE=~/.ssh/operator_demo_conf
+touch ${SSH_CONFIG_FILE} && chmod 600 ${SSH_CONFIG_FILE}
+
 # Assume this is run right after minikube is setup on host machine for user ${USER}
-scp -i ${KEYFILE_PATH} ${USER}@${MINIKUBE_HOST}:~/.kube/config ${REMOTE_KUBECONFIG_PATH}
+scp -F ${SSH_CONFIG_FILE} -i ${KEYFILE_PATH} ${USER}@${MINIKUBE_HOST}:~/.kube/config ${REMOTE_KUBECONFIG_PATH}
 
 # find the host directory for certs.  For kubectl config documentation and examples, see
 # this site: https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-context-and-configuration
@@ -43,7 +47,7 @@ for HOST_FILE_PATH in ${FILES[@]}; do
     REMOTE_CERT_FILE_PATH="${CERTS_DIR}/${FILE_NAME}"
     
     echo "Copying ${FILE_NAME} from ${MINIKUBE_HOST}:${HOST_FILE_PATH} to ${REMOTE_CERT_FILE_PATH}."
-    scp -i ${KEYFILE_PATH} ${USER}@${MINIKUBE_HOST}:${HOST_FILE_PATH} ${REMOTE_CERT_FILE_PATH}
+    scp -F ${SSH_CONFIG_FILE} -i ${KEYFILE_PATH} ${USER}@${MINIKUBE_HOST}:${HOST_FILE_PATH} ${REMOTE_CERT_FILE_PATH}
 done
 
 
