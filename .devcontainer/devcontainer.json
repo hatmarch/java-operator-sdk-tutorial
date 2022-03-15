@@ -1,19 +1,20 @@
 {
 	"name": "Java Operator SDK Tutorial",
 	"dockerFile": "Dockerfile",
+	"containerUser": "vscode",
 	"runArgs": [
-		"-v", "${env:HOME}/.kube:/home/jboss/.kube",
-		"-v", "${env:HOME}/.vs-kubernetes:/home/jboss/.vs-kubernetes",
+		"-v", "${env:HOME}/.kube:/home/vscode/.kube",
+		"-v", "${env:HOME}/.vs-kubernetes:/home/vscode/.vs-kubernetes",
 
 		// use local .oh-my-zsh configuration if it exists (overwriting one in container).
 		// comment the following line out if you want to use local installation on container instead
-		"-v", "${env:HOME}/.oh-my-zsh:/home/jboss/.oh-my-zsh",
-		"-v", "${env:HOME}/.helm:/home/jboss/.helm",
-		"-v", "${env:HOME}/.ssh:/home/jboss/.ssh",
+		//"-v", "${env:HOME}/.oh-my-zsh:/home/vscode/.oh-my-zsh",
+		"-v", "${env:HOME}/.helm:/home/vscode/.helm",
+		"-v", "${env:HOME}/.ssh:/home/vscode/.ssh",
 		// mount the maven cache locally
-		"-v", "${env:HOME}/.m2/:/home/jboss/.m2",
+		"-v", "${env:HOME}/.m2/:/home/vscode/.m2",
 		// mount npm cache locally
-		"-v", "${env:HOME}/.npm:/home/jboss/.npm",
+		"-v", "${env:HOME}/.npm:/home/vscode/.npm",
 		
 		// override dockerfile DEMO_HOME to whatever folder vscode considers the root folder in the container
 		"-e", "DEMO_HOME=${containerWorkspaceFolder}",
@@ -30,7 +31,7 @@
 	"postStartCommand": "rsync -a .devcontainer/workspace-setup/ ${containerWorkspaceFolder}/.vscode/ --ignore-existing",
 	"settings":{
 		"terminal.integrated.shell.linux": "/bin/zsh",
-		"java.home": "/usr/lib/jvm/java-11-openjdk",
+		"java.home": "/usr/lib/jvm/msopenjdk-11",
 		"workbench.colorTheme": "Solarized Light",
 		"http.proxyStrictSSL": false,
 		"workbench.tips.enabled": false,
